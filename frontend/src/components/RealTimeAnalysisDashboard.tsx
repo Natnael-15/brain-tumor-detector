@@ -50,10 +50,10 @@ import {
   Close,
   Visibility,
   Assessment,
-  Warning,
-  ViewInAr
+  Warning
 } from '@mui/icons-material';
 import { useWebSocket } from '../lib/websocket';
+import BrainActivitySimulation from './BrainActivitySimulation';
 
 // Interfaces
 interface CurrentAnalysisState {
@@ -160,16 +160,14 @@ interface RealTimeAnalysisDashboardProps {
   analysisId?: string;
   onAnalysisComplete?: (results: AnalysisResult[]) => void;
   onAnalysisError?: (error: string) => void;
-  isConnected?: boolean; // Add connection status prop
-  onView3D?: (visualizationData: any, analysis: AnalysisHistoryEntry) => void; // NEW: Callback for 3D viewing
+  isConnected?: boolean;
 }
 
 export const RealTimeAnalysisDashboard: React.FC<RealTimeAnalysisDashboardProps> = ({
   analysisId,
   onAnalysisComplete,
   onAnalysisError,
-  isConnected: parentConnected = false, // Use parent connection status
-  onView3D // NEW: 3D viewing callback
+  isConnected: parentConnected = false
 }) => {
   const websocket = useWebSocket();
   
@@ -517,7 +515,7 @@ export const RealTimeAnalysisDashboard: React.FC<RealTimeAnalysisDashboardProps>
                   {currentAnalysisInfo.progress === 100 && currentAnalysis?.result && (
                     <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                       <Button 
-                        variant="outlined" 
+                        variant="contained" 
                         size="small"
                         startIcon={<Visibility />}
                         onClick={() => {
@@ -530,25 +528,8 @@ export const RealTimeAnalysisDashboard: React.FC<RealTimeAnalysisDashboardProps>
                           }
                         }}
                       >
-                        View Medical Report
+                        View Full Medical Report
                       </Button>
-                      {currentAnalysis.result.visualization_data && onView3D && (
-                        <Button 
-                          variant="contained" 
-                          size="small"
-                          startIcon={<ViewInAr />}
-                          onClick={() => {
-                            const historyEntry = persistentAnalysisHistory.find(
-                              entry => entry.analysis_id === currentAnalysisInfo.analysis_id
-                            );
-                            if (historyEntry && onView3D && currentAnalysis.result) {
-                              onView3D(currentAnalysis.result.visualization_data, historyEntry);
-                            }
-                          }}
-                        >
-                          View 3D
-                        </Button>
-                      )}
                     </Box>
                   )}
                 </Box>
@@ -778,23 +759,41 @@ export const RealTimeAnalysisDashboard: React.FC<RealTimeAnalysisDashboardProps>
         </Alert>
       )}
 
-      {/* Analysis Details Dialog */}
+      {/* Enhanced Analysis Details Modal */}
       <Dialog 
         open={!!selectedAnalysis} 
         onClose={() => setSelectedAnalysis(null)}
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth
+        PaperProps={{
+          sx: {
+            minHeight: '85vh',
+            maxHeight: '95vh',
+            bgcolor: 'background.default'
+          }
+        }}
       >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <DialogTitle 
+          sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+            py: 2.5
+          }}
+        >
           <Box>
-            <Typography variant="h6">Analysis Details</Typography>
+            <Typography variant="h5" fontWeight="bold">
+              🧠 Medical Analysis Report
+            </Typography>
             {selectedAnalysis && (
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.9 }}>
                 {selectedAnalysis.file_name} • {formatTimestamp(selectedAnalysis.timestamp)}
               </Typography>
             )}
           </Box>
-          <IconButton onClick={() => setSelectedAnalysis(null)}>
+          <IconButton onClick={() => setSelectedAnalysis(null)} sx={{ color: 'inherit' }}>
             <Close />
           </IconButton>
         </DialogTitle>
@@ -802,9 +801,19 @@ export const RealTimeAnalysisDashboard: React.FC<RealTimeAnalysisDashboardProps>
         <DialogContent>
           {selectedAnalysis && (
             <Grid container spacing={3}>
+              {/* Real-time Brain Activity Simulation - NEW! */}
+              <Grid item xs={12} md={6}>
+                <BrainActivitySimulation
+                  tumorDetected={selectedAnalysis.results?.tumor_detected || false}
+                  confidence={selectedAnalysis.results?.confidence || 0}
+                  tumorLocation={selectedAnalysis.results?.prediction?.location || 'Unknown'}
+                  analysisId={selectedAnalysis.analysis_id}
+                />
+              </Grid>
+
               {/* File Information */}
               <Grid item xs={12} md={6}>
-                <Card variant="outlined">
+                <Card variant="outlined" sx={{ height: '100%' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
                       <Assessment sx={{ mr: 1, verticalAlign: 'middle' }} />
@@ -1261,24 +1270,6 @@ export const RealTimeAnalysisDashboard: React.FC<RealTimeAnalysisDashboardProps>
           >
             Close
           </Button>
-          {selectedAnalysis?.results?.visualization_data && (
-            <Button 
-              startIcon={<Visibility />}
-              variant="contained"
-              onClick={() => {
-                if (onView3D && selectedAnalysis.results?.visualization_data) {
-                  onView3D(selectedAnalysis.results.visualization_data, selectedAnalysis);
-                  setSelectedAnalysis(null); // Close dialog
-                } else {
-                  console.log('3D viewer not available - onView3D callback not provided');
-                  // Fallback: just log for now
-                  console.log('Open 3D viewer for:', selectedAnalysis.analysis_id);
-                }
-              }}
-            >
-              View 3D Visualization
-            </Button>
-          )}
         </DialogActions>
       </Dialog>
     </Paper>

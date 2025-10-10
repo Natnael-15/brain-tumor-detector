@@ -25,17 +25,13 @@ import {
   Visibility,
   Analytics,
   Settings,
-  Psychology,
-  ViewInAr
+  Psychology
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 
 // Import our Phase 3 components
 import MedicalImageUpload from '../components/MedicalImageUpload';
 import RealTimeAnalysisDashboard from '../components/RealTimeAnalysisDashboard';
-import Medical3DViewer from '../components/Medical3DViewer';
-import RealisticBrainViewer from '../components/RealisticBrainViewer';
-import Advanced3DBrainViewer from '../components/Simple3DBrainViewer';
 import { useEnhancedWebSocket } from '../lib/enhanced-websocket';
 
 interface TabPanelProps {
@@ -65,7 +61,6 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState(0);
   const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(null);
   const [analysisResults, setAnalysisResults] = useState<any>(null);
-  const [visualizationData, setVisualizationData] = useState<any>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStats, setConnectionStats] = useState({
     totalAnalyses: 0,
@@ -86,30 +81,7 @@ export default function HomePage() {
     }));
   };
 
-  /**
-   * Load enhanced 3D visualization data
-   */
-  const loadEnhanced3DData = async (analysisId: string) => {
-    try {
-      const response = await fetch(`http://localhost:8000/api/v1/analysis/${analysisId}/enhanced_3d`, {
-        headers: {
-          'Authorization': 'Bearer mock-token'
-        }
-      });
-      
-      if (response.ok) {
-        const enhanced3DData = await response.json();
-        console.log('🧠 Enhanced 3D data loaded:', enhanced3DData);
-        return enhanced3DData;
-      } else {
-        console.error('❌ Failed to load enhanced 3D data:', response.statusText);
-        return null;
-      }
-    } catch (error) {
-      console.error('❌ Error loading enhanced 3D data:', error);
-      return null;
-    }
-  };
+
 
   /**
    * Handle analysis completion
@@ -122,39 +94,10 @@ export default function HomePage() {
       successfulAnalyses: prev.successfulAnalyses + 1
     }));
     
-    // Load enhanced 3D data if analysis ID is available
-    if (currentAnalysisId) {
-      const enhanced3DData = await loadEnhanced3DData(currentAnalysisId);
-      if (enhanced3DData) {
-        setVisualizationData(enhanced3DData);
-        toast.success('✅ Analysis complete! Enhanced 3D brain visualization loaded.', {
-          duration: 8000
-        });
-      } else {
-        toast.success('✅ Analysis complete! Medical report ready.');
-      }
-    } else {
-      // Store visualization data for potential 3D viewing, but don't auto-redirect
-      if (results?.[0]?.visualization_data) {
-        setVisualizationData(results[0].visualization_data);
-        toast.success('✅ Analysis complete! Medical report ready. 3D visualization available.', {
-          duration: 8000
-        });
-      } else {
-        toast.success('✅ Analysis complete! Medical report is ready.');
-      }
-    }
+    toast.success('✅ Analysis complete! Medical report is ready.');
   };
 
-  /**
-   * Handle view 3D request from dashboard
-   */
-  const handleView3D = (visualizationData: any, analysis: any) => {
-    console.log('🎯 View 3D requested for analysis:', analysis.analysis_id);
-    setVisualizationData(visualizationData);
-    setActiveTab(2); // Switch to 3D viewer tab
-    toast.success('Switching to 3D viewer...', { duration: 3000 });
-  };
+
 
   /**
    * Handle file preview
@@ -314,12 +257,6 @@ export default function HomePage() {
               iconPosition="start"
               sx={{ minHeight: 'auto', py: 2 }}
             />
-            <Tab 
-              label="3D Visualization" 
-              icon={<ViewInAr />} 
-              iconPosition="start"
-              sx={{ minHeight: 'auto', py: 2 }}
-            />
           </Tabs>
         </Box>
 
@@ -339,49 +276,7 @@ export default function HomePage() {
             onAnalysisComplete={handleAnalysisComplete}
             onAnalysisError={(error) => console.error('Analysis error:', error)}
             isConnected={isConnected}
-            onView3D={handleView3D}
           />
-        </TabPanel>
-
-        {/* Tab Panel 2: 3D Visualization */}
-        <TabPanel value={activeTab} index={2}>
-          {visualizationData ? (
-            <Box sx={{ height: '600px' }}>
-              <Advanced3DBrainViewer
-                data={visualizationData}
-                analysisId={currentAnalysisId || undefined}
-                onTumorClick={(tumorData) => {
-                  console.log('Tumor clicked:', tumorData);
-                  toast.success('Tumor details loaded');
-                }}
-              />
-            </Box>
-          ) : (
-            <Alert severity="info" sx={{ m: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                🧠 Advanced 3D Brain Visualization
-              </Typography>
-              <Typography variant="body2" gutterBottom>
-                Upload and analyze medical images to generate advanced 3D brain visualizations.
-                The enhanced viewer supports:
-              </Typography>
-              <Box component="ul" sx={{ mt: 1, pl: 2 }}>
-                <li>External 3D brain models (GLB, GLTF, OBJ, FBX)</li>
-                <li>Anatomically accurate medical visualization</li>
-                <li>Tumor detection with interactive highlighting</li>
-                <li>Clinical-grade lighting and materials</li>
-                <li>Auto-detection of available brain models</li>
-              </Box>
-              <Box sx={{ mt: 2, height: '500px' }}>
-                <Advanced3DBrainViewer
-                  onTumorClick={(tumorData) => {
-                    console.log('Demo tumor clicked:', tumorData);
-                    toast('Demo tumor interaction');
-                  }}
-                />
-              </Box>
-            </Alert>
-          )}
         </TabPanel>
       </Paper>
 
@@ -391,12 +286,11 @@ export default function HomePage() {
           Brain MRI Tumor Detector - Clinical AI System
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          Advanced Deep Learning for Medical Image Analysis • Real-time Processing • 3D Visualization
+          Advanced Deep Learning for Medical Image Analysis • Real-time Processing
         </Typography>
         <Box sx={{ mt: 1 }}>
           <Chip label="6 AI Models" color="primary" size="small" variant="outlined" sx={{ mr: 1 }} />
-          <Chip label="Real-time Analysis" color="success" size="small" variant="outlined" sx={{ mr: 1 }} />
-          <Chip label="3D Medical Viewer" color="info" size="small" variant="outlined" />
+          <Chip label="Real-time Analysis" color="success" size="small" variant="outlined" />
         </Box>
       </Box>
     </Container>
