@@ -25,8 +25,6 @@ import json
 # Import services
 from services.model_service import model_service
 from services.websocket_manager import manager, handle_websocket_message, connection_health_check
-from services.visualization_service import visualization_service
-from services.enhanced_3d_service import enhanced_3d_service
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -260,15 +258,7 @@ async def run_analysis(analysis_id: str, file_paths: List[str], model: str):
             "model": model
         })
         
-        # Generate 3D visualization data for this analysis
-        try:
-            primary_file = file_paths[0] if file_paths else "mock_file.nii"
-            visualization_data = await visualization_service.generate_3d_visualization(primary_file, analysis_id)
-        except Exception as e:
-            logger.warning(f"Could not generate visualization data: {e}")
-            visualization_data = None
-        
-        # Enhance results with additional metadata and visualization data
+        # Enhance results with additional metadata
         enhanced_results = {
             **results,
             "analysis_metadata": {
@@ -277,10 +267,8 @@ async def run_analysis(analysis_id: str, file_paths: List[str], model: str):
                 "processing_completed": datetime.now().isoformat(),
                 "phase": "Phase 3 - Advanced AI"
             },
-            "visualization_data": visualization_data,  # Include actual visualization data
             "visualization": {
                 "segmentation_available": True,
-                "3d_rendering_url": f"/api/v1/analysis/{analysis_id}/visualization",
                 "report_url": f"/api/v1/analysis/{analysis_id}/report"
             },
             "clinical_notes": [
@@ -429,120 +417,6 @@ async def send_notification(
     await manager.send_system_notification(notification, user_id)
     return {"status": "notification_sent", "user_id": user_id}
 
-# 3D Visualization Endpoints
-@app.get("/api/v1/analysis/{analysis_id}/enhanced_3d")
-async def get_enhanced_3d_visualization(
-    analysis_id: str,
-    current_user: dict = Depends(get_current_user)
-):
-    """Get enhanced 3D brain visualization with realistic anatomy"""
-    if analysis_id not in analysis_status:
-        raise HTTPException(status_code=404, detail="Analysis not found")
-    
-    status = analysis_status[analysis_id]
-    if status["user_id"] != current_user["id"]:
-        raise HTTPException(status_code=403, detail="Access denied")
-    
-    try:
-        # Get tumor prediction if analysis is complete
-        tumor_prediction = None
-        if analysis_id in analysis_results:
-            result = analysis_results[analysis_id]
-            tumor_prediction = {
-                'tumor_detected': result.get('tumor_detected', False),
-                'confidence': result.get('confidence', 0.0),
-                'tumor_type': result.get('tumor_type', 'unknown')
-            }
-        
-        # Generate enhanced 3D data
-        visualization_data = await enhanced_3d_service.generate_brain_visualization_data(
-            analysis_id=analysis_id,
-            tumor_prediction=tumor_prediction
-        )
-        
-        return visualization_data
-        
-    except Exception as e:
-        logger.error(f"Error generating enhanced 3D visualization: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate enhanced 3D visualization")
-
-@app.get("/api/v1/analysis/{analysis_id}/visualization")
-async def get_3d_visualization(
-    analysis_id: str,
-    current_user: dict = Depends(get_current_user)
-):
-    """Get 3D visualization data for analysis"""
-    if analysis_id not in analysis_status:
-        raise HTTPException(status_code=404, detail="Analysis not found")
-    
-    status = analysis_status[analysis_id]
-    if status["user_id"] != current_user["id"]:
-        raise HTTPException(status_code=403, detail="Access denied")
-    
-    # Get the primary file from analysis
-    file_paths = status.get("files", [])
-    if not file_paths:
-        raise HTTPException(status_code=400, detail="No files found for analysis")
-    
-    primary_file = file_paths[0]
-    
-    try:
-        visualization_data = await visualization_service.generate_3d_visualization(primary_file, analysis_id)
-        return visualization_data
-    except Exception as e:
-        logger.error(f"Error generating 3D visualization: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate 3D visualization")
-
-@app.get("/api/v1/analysis/{analysis_id}/tumor_overlay")
-async def get_tumor_overlay(
-    analysis_id: str,
-    current_user: dict = Depends(get_current_user)
-):
-    """Get tumor overlay for 3D visualization"""
-    if analysis_id not in analysis_results:
-        raise HTTPException(status_code=404, detail="Analysis results not found")
-    
-    result = analysis_results[analysis_id]
-    
-    try:
-        overlay_data = await visualization_service.generate_tumor_overlay(analysis_id, result)
-        return overlay_data
-    except Exception as e:
-        logger.error(f"Error generating tumor overlay: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate tumor overlay")
-
-@app.post("/api/v1/visualization/cache/clear")
-async def clear_visualization_cache(current_user: dict = Depends(get_current_user)):
-    """Clear visualization cache"""
-    visualization_service.clear_cache()
-    return {"status": "cache_cleared", "timestamp": datetime.now().isoformat()}
-
-@app.get("/api/v1/visualization/capabilities")
-async def get_visualization_capabilities():
-    """Get available visualization capabilities"""
-    return {
-        "3d_rendering": {
-            "available": True,
-            "features": [
-                "Volume rendering",
-                "Multi-planar reconstruction (MPR)",
-                "Slice-by-slice navigation",
-                "Window/Level adjustment",
-                "Tumor overlay visualization",
-                "Real-time interaction"
-            ]
-        },
-        "supported_formats": [".nii", ".nii.gz", ".dcm", ".mha", ".mhd"],
-        "medical_libraries": {
-            "nibabel": False,  # Will be detected by visualization service
-            "SimpleITK": False  # Will be detected by visualization service
-        },
-        "web_technologies": {
-            "WebGL": True,
-            "WebRTC": True,
-            "WebSocket": True
-        }
-    }
 
 if __name__ == "__main__":
     import uvicorn
