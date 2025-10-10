@@ -213,17 +213,17 @@ export default function HomePage() {
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h3" component="h1" gutterBottom fontWeight="bold">
+        <Typography variant="h3" component="h1" gutterBottom fontWeight="bold" sx={{ color: 'primary.main' }}>
           🧠 Brain MRI Tumor Detector
         </Typography>
         <Typography variant="h6" color="text.secondary" gutterBottom>
-          Phase 3: Real-time AI Analysis with 3D Visualization
+          Advanced AI-Powered Medical Imaging Analysis
         </Typography>
         
         {/* Status Cards */}
         <Grid container spacing={2} sx={{ mt: 2 }}>
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
+            <Card elevation={2}>
               <CardContent sx={{ textAlign: 'center', py: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                   <Psychology color={isConnected ? 'success' : 'error'} />
@@ -232,14 +232,14 @@ export default function HomePage() {
                   </Typography>
                 </Box>
                 <Typography variant="caption" color="text.secondary">
-                  WebSocket Status
+                  System Status
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
           
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
+            <Card elevation={2}>
               <CardContent sx={{ textAlign: 'center', py: 2 }}>
                 <Typography variant="h6" color="primary">
                   {connectionStats.totalAnalyses}
@@ -252,7 +252,7 @@ export default function HomePage() {
           </Grid>
           
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
+            <Card elevation={2}>
               <CardContent sx={{ textAlign: 'center', py: 2 }}>
                 <Typography variant="h6" color="success.main">
                   {connectionStats.successfulAnalyses}
@@ -265,20 +265,17 @@ export default function HomePage() {
           </Grid>
           
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
+            <Card elevation={2}>
               <CardContent sx={{ textAlign: 'center', py: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                   <Chip 
-                    label="v3.0" 
+                    label="Clinical AI" 
                     color="primary" 
                     size="small" 
                   />
-                  <Typography variant="body2">
-                    Phase 3
-                  </Typography>
                 </Box>
                 <Typography variant="caption" color="text.secondary">
-                  System Version
+                  6 AI Models Active
                 </Typography>
               </CardContent>
             </Card>
@@ -297,84 +294,9 @@ export default function HomePage() {
             </Button>
           }
         >
-          Not connected to the analysis server. Some features may be limited.
+          Not connected to the analysis server. Attempting to reconnect...
         </Alert>
       )}
-
-      {/* Connection Status and Test */}
-      <Box sx={{ mb: 3 }}>
-        <Card variant="outlined">
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography variant="h6">
-                  WebSocket Status:
-                </Typography>
-                <Chip
-                  icon={isConnected ? <Psychology /> : <Settings />}
-                  label={isConnected ? 'Connected' : 'Disconnected'}
-                  color={isConnected ? 'success' : 'warning'}
-                  variant="outlined"
-                />
-              </Box>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button 
-                  variant="outlined" 
-                  size="small" 
-                  onClick={async () => {
-                    try {
-                      const userId = `test_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-                      console.log('🔄 Manual WebSocket connection test with user:', userId);
-                      const connected = await websocket.connect(userId);
-                      console.log('✅ Manual connection result:', connected);
-                      setIsConnected(connected);
-                    } catch (error) {
-                      console.error('❌ Manual connection failed:', error);
-                    }
-                  }}
-                >
-                  Test Connection
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  color="error"
-                  onClick={() => {
-                    websocket.disconnect();
-                    setIsConnected(false);
-                  }}
-                >
-                  Disconnect
-                </Button>
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
-      </Box>
-
-      {/* Debug Information */}
-      <Alert severity="info" sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="body2">
-            <strong>Debug Info:</strong> Connection State = {isConnected ? 'Connected' : 'Disconnected'} | 
-            WebSocket Ready State = {websocket.isConnected() ? 'OPEN' : 'NOT_OPEN'} | 
-            User ID = {websocket.getUserId() || 'None'}
-          </Typography>
-          <Button 
-            variant="contained" 
-            size="small" 
-            onClick={async () => {
-              console.log('🔄 Manual reconnect triggered');
-              websocket.disconnect();
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              const result = await websocket.connect();
-              console.log('🔄 Manual reconnect result:', result);
-            }}
-          >
-            Force Reconnect
-          </Button>
-        </Box>
-      </Alert>
 
       {/* Main Interface */}
       <Paper sx={{ width: '100%' }}>
@@ -464,15 +386,17 @@ export default function HomePage() {
       </Paper>
 
       {/* Footer */}
-      <Box sx={{ mt: 4, textAlign: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
-          Brain MRI Tumor Detector v3.0 - Phase 3: Advanced AI with Real-time WebSocket Integration & 3D Visualization
+      <Box sx={{ mt: 4, textAlign: 'center', py: 2, borderTop: '1px solid #e0e0e0' }}>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          Brain MRI Tumor Detector - Clinical AI System
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Advanced Deep Learning for Medical Image Analysis • Real-time Processing • 3D Visualization
         </Typography>
         <Box sx={{ mt: 1 }}>
-          <Chip label="🚀 Phase 3 Step 3 Complete" color="success" size="small" sx={{ mr: 1 }} />
-          <Chip label="WebSocket Real-time" color="primary" size="small" sx={{ mr: 1 }} />
-          <Chip label="3D Medical Viewer" color="secondary" size="small" sx={{ mr: 1 }} />
-          <Chip label="6 AI Models" color="info" size="small" />
+          <Chip label="6 AI Models" color="primary" size="small" variant="outlined" sx={{ mr: 1 }} />
+          <Chip label="Real-time Analysis" color="success" size="small" variant="outlined" sx={{ mr: 1 }} />
+          <Chip label="3D Medical Viewer" color="info" size="small" variant="outlined" />
         </Box>
       </Box>
     </Container>
