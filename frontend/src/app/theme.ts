@@ -1,9 +1,6 @@
 'use client';
 
 import { createTheme } from '@mui/material/styles';
-import { Inter } from 'next/font/google';
-
-const inter = Inter({ subsets: ['latin'] });
 
 // Create Material-UI theme for medical application
 const theme = createTheme({
@@ -34,7 +31,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: inter.style.fontFamily,
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     h1: {
       fontWeight: 600,
       fontSize: '2.5rem',
