@@ -42,7 +42,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
     """WebSocket endpoint for real-time updates"""
     await websocket.accept()
     active_connections.add(websocket)
-    print(f"✅ WebSocket connected: {user_id}")
+    print(f" WebSocket connected: {user_id}")
     
     # Send welcome message
     await websocket.send_json({
@@ -69,7 +69,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
         active_connections.discard(websocket)
 
 if __name__ == "__main__":
-    print("🚀 Starting Mock Backend Server...")
+    print(" Starting Mock Backend Server...")
     print("   WebSocket endpoint: ws://localhost:8000/ws/{user_id}")
     print("   Health check: http://localhost:8000/api/v1/health")
     uvicorn.run(app, host="0.0.0.0", port=8000)

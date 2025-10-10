@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 # Initialize FastAPI app
 app = FastAPI(
     title="Brain MRI Tumor Detector API",
-    description="Advanced AI-powered brain tumor detection and analysis API with Phase 3 Integration",
+    description="Advanced automated brain tumor detection and analysis API with Phase 3 Integration",
     version="3.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc"
@@ -71,7 +71,7 @@ analysis_status = {}
 async def startup_event():
     """Initialize models and services on startup"""
     logger.info("Starting Brain MRI Tumor Detector API v3.0...")
-    logger.info("Phase 3: Advanced AI Models Integration + Real-time WebSockets")
+    logger.info("Phase 3: Advanced Models Integration + Real-time WebSockets")
     
     # Initialize model service
     await model_service.initialize()
@@ -81,7 +81,7 @@ async def startup_event():
     
     # Get available models
     models = await model_service.get_available_models()
-    logger.info(f"Loaded {len(models)} AI models:")
+    logger.info(f"Loaded {len(models)} detection models:")
     for model in models:
         logger.info(f"  - {model['name']} ({model['type']}) - {model['model_type']}")
     
@@ -102,7 +102,7 @@ async def health_check():
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
         "version": "3.0.0",
-        "phase": "Phase 3 - Advanced AI Integration",
+        "phase": "Phase 3 - Advanced Models Integration",
         "models_loaded": len([m for m in models if m.get("loaded", False)]),
         "ai_backend": "Phase 1 Models Integrated"
     }
@@ -130,12 +130,12 @@ async def websocket_test():
 
 @app.get("/api/v1/models")
 async def get_available_models():
-    """Get list of available AI models with Phase 1 integration"""
+    """Get list of available detection models with Phase 1 integration"""
     models = await model_service.get_available_models()
     return {
         "models": models,
         "total": len(models),
-        "phase": "Phase 3 - Real AI Models",
+        "phase": "Phase 3 - Real Detection Models",
         "capabilities": [
             "Real-time tumor detection",
             "Advanced segmentation",
@@ -152,7 +152,7 @@ async def upload_files(
     background_tasks: BackgroundTasks = BackgroundTasks(),
     current_user: dict = Depends(get_current_user)
 ):
-    """Upload medical images and start analysis with Phase 3 AI models"""
+    """Upload medical images and start analysis with Phase 3 detection models"""
     
     # Validate model selection
     available_models = await model_service.get_available_models()
@@ -191,21 +191,21 @@ async def upload_files(
         "files": uploaded_files,
         "created_at": datetime.now().isoformat(),
         "user_id": current_user["id"],
-        "phase": "Phase 3 - Real AI Analysis"
+        "phase": "Phase 3 - Real Automated Analysis"
     }
     
-    # Start background analysis with real AI models
+    # Start background analysis with real detection models
     background_tasks.add_task(run_analysis, analysis_id, uploaded_files, model)
     
     return {
         "analysis_id": analysis_id,
         "status": "queued",
-        "message": "Phase 3 AI analysis started successfully",
+        "message": "Phase 3 automated analysis started successfully",
         "model_info": next((m for m in available_models if m["id"] == model), None)
     }
 
 async def run_analysis(analysis_id: str, file_paths: List[str], model: str):
-    """Run analysis in background using Phase 3 AI models with real-time updates"""
+    """Run analysis in background using Phase 3 detection models with real-time updates"""
     try:
         # Update status and send WebSocket update
         analysis_status[analysis_id]["status"] = "preprocessing"
@@ -227,7 +227,7 @@ async def run_analysis(analysis_id: str, file_paths: List[str], model: str):
             "file_name": Path(file_paths[0]).name if file_paths else "Unknown"
         })
         
-        # Model inference using real AI models
+        # Model inference using real detection models
         analysis_status[analysis_id]["status"] = "analyzing"
         analysis_status[analysis_id]["progress"] = 40
         await manager.send_analysis_update(analysis_id, "analyzing", 40, {
@@ -245,7 +245,7 @@ async def run_analysis(analysis_id: str, file_paths: List[str], model: str):
         
         analysis_status[analysis_id]["progress"] = 80
         await manager.send_analysis_update(analysis_id, "analyzing", 80, {
-            "message": "AI analysis complete, processing results...",
+            "message": "automated analysis complete, processing results...",
             "file_name": Path(file_paths[0]).name if file_paths else "Unknown",
             "model": model
         })
@@ -267,14 +267,14 @@ async def run_analysis(analysis_id: str, file_paths: List[str], model: str):
                 "files_processed": len(file_paths),
                 "file_names": [Path(fp).name for fp in file_paths],
                 "processing_completed": datetime.now().isoformat(),
-                "phase": "Phase 3 - Advanced AI"
+                "phase": "Phase 3 - Advanced Models"
             },
             "visualization": {
                 "segmentation_available": True,
                 "report_url": f"/api/v1/analysis/{analysis_id}/report"
             },
             "clinical_notes": [
-                "AI-powered analysis completed",
+                "Automated analysis completed",
                 "Phase 3 model integration successful",
                 "Results ready for clinical review",
                 "Confidence-based recommendations provided"

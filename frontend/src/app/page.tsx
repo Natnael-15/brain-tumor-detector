@@ -72,7 +72,7 @@ export default function HomePage() {
    * Handle analysis start
    */
   const handleAnalysisStart = (analysisId: string, files: any[], model: string) => {
-    console.log('🚀 Analysis started:', { analysisId, files: files.length, model });
+    console.log('Analysis started:', { analysisId, files: files.length, model });
     setCurrentAnalysisId(analysisId);
     setActiveTab(1); // Switch to dashboard tab
     setConnectionStats(prev => ({
@@ -87,14 +87,14 @@ export default function HomePage() {
    * Handle analysis completion
    */
   const handleAnalysisComplete = async (results: any) => {
-    console.log('✅ Analysis completed:', results);
+    console.log('Analysis completed:', results);
     setAnalysisResults(results);
     setConnectionStats(prev => ({
       ...prev,
       successfulAnalyses: prev.successfulAnalyses + 1
     }));
     
-    toast.success('✅ Analysis complete! Medical report is ready.');
+    toast.success('Analysis complete! Medical report is ready.');
   };
 
 
@@ -157,10 +157,10 @@ export default function HomePage() {
       {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h3" component="h1" gutterBottom fontWeight="bold" sx={{ color: 'primary.main' }}>
-          🧠 Brain MRI Tumor Detector
+          Brain MRI Tumor Detector
         </Typography>
         <Typography variant="h6" color="text.secondary" gutterBottom>
-          Advanced AI-Powered Medical Imaging Analysis
+          Advanced Automated Medical Imaging Analysis
         </Typography>
         
         {/* Status Cards */}
@@ -212,13 +212,13 @@ export default function HomePage() {
               <CardContent sx={{ textAlign: 'center', py: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                   <Chip 
-                    label="Clinical AI" 
+                    label="Clinical Grade" 
                     color="primary" 
                     size="small" 
                   />
                 </Box>
                 <Typography variant="caption" color="text.secondary">
-                  6 AI Models Active
+                  6 Detection Models Active
                 </Typography>
               </CardContent>
             </Card>
@@ -283,13 +283,13 @@ export default function HomePage() {
       {/* Footer */}
       <Box sx={{ mt: 4, textAlign: 'center', py: 2, borderTop: '1px solid #e0e0e0' }}>
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          Brain MRI Tumor Detector - Clinical AI System
+          Brain MRI Tumor Detector - Clinical Detection System
         </Typography>
         <Typography variant="caption" color="text.secondary">
           Advanced Deep Learning for Medical Image Analysis • Real-time Processing
         </Typography>
         <Box sx={{ mt: 1 }}>
-          <Chip label="6 AI Models" color="primary" size="small" variant="outlined" sx={{ mr: 1 }} />
+          <Chip label="6 Detection Models" color="primary" size="small" variant="outlined" sx={{ mr: 1 }} />
           <Chip label="Real-time Analysis" color="success" size="small" variant="outlined" />
         </Box>
       </Box>

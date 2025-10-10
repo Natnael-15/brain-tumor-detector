@@ -1,10 +1,10 @@
 # Brain MRI Tumor Detector - Installation & Setup Guide
 
-## 🚀 Quick Start
+##  Quick Start
 
 This guide will help you set up and run the Brain MRI Tumor Detector on your system.
 
-## 📋 System Requirements
+##  System Requirements
 
 - **Python**: 3.8 or higher
 - **Operating System**: Windows, macOS, or Linux
@@ -49,18 +49,18 @@ python test_installation.py
 
 Expected output:
 ```
-🧠 Brain MRI Tumor Detector - System Test
+ Brain MRI Tumor Detector - System Test
 ==================================================
-✅ Basic Imports PASSED
-✅ Project Structure PASSED  
-✅ Configuration Files PASSED
-✅ Module Imports PASSED
-✅ Basic Functionality PASSED
-✅ Sample Data Creation PASSED
-🎉 All tests passed!
+ Basic Imports PASSED
+ Project Structure PASSED  
+ Configuration Files PASSED
+ Module Imports PASSED
+ Basic Functionality PASSED
+ Sample Data Creation PASSED
+ All tests passed!
 ```
 
-## 🎯 Getting Started
+##  Getting Started
 
 ### Option 1: Web Interface (Easiest)
 
@@ -104,7 +104,7 @@ jupyter notebook
 
 3. Open `notebooks/getting_started.md` for an interactive tutorial
 
-## 🔧 Troubleshooting
+##  Troubleshooting
 
 ### Common Issues
 
@@ -149,7 +149,7 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 python -c "import torch; print(torch.cuda.is_available())"
 ```
 
-## 📁 Project Structure Overview
+##  Project Structure Overview
 
 ```
 brain-tumor-detector/
@@ -173,7 +173,7 @@ brain-tumor-detector/
 └── README.md           # Documentation
 ```
 
-## 🔬 Advanced Setup
+##  Advanced Setup
 
 ### Custom Model Training
 
@@ -210,7 +210,7 @@ black src/
 flake8 src/
 ```
 
-## 🚀 Next Steps
+##  Next Steps
 
 Once installed, you can:
 
@@ -229,4 +229,4 @@ If you encounter issues:
 3. Review the main README.md for detailed documentation
 4. Create an issue on GitHub with error details
 
-Happy analyzing! 🧠✨
+Happy analyzing! ✨

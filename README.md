@@ -12,7 +12,7 @@ This project reflects my goal of using technology responsibly and meaningfully. 
 
 ---
 
-## 🎯 Features
+## Features
 
 * **AI-Powered Tumor Detection**: Upload MRI scans for automated tumor classification and segmentation using deep learning.
 * **Brain Wave Monitoring Simulator**: A simulated environment that visualizes brainwave patterns, response signals, and neural activity mapping.
