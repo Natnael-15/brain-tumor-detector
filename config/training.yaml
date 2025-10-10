@@ -1,0 +1,32 @@
+# Training Configuration
+model:
+  name: "unet3d"  # Options: unet3d, resnet3d, attention_unet3d
+  input_channels: 1
+  num_classes: 4
+  
+training:
+  batch_size: 4
+  learning_rate: 0.001
+  num_epochs: 100
+  optimizer: "adam"  # Options: adam, sgd
+  loss_function: "dice"  # Options: dice, focal, crossentropy
+  
+data:
+  target_shape: [128, 128, 128]
+  target_spacing: [1.0, 1.0, 1.0]
+  augmentation: true
+  skull_strip: false
+  
+validation:
+  split_ratio: 0.2
+  save_best_only: true
+  early_stopping_patience: 10
+  
+paths:
+  data_dir: "data/processed"
+  output_dir: "data/models"
+  checkpoint_dir: "checkpoints"
+  
+logging:
+  level: "INFO"
+  save_logs: true

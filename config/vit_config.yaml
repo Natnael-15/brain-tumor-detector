@@ -1,0 +1,140 @@
+# Vision Transformer Configuration for Brain MRI Analysis
+# Settings for Medical Vision Transformer (MedViT) models
+
+medvit:
+  # Model architecture
+  model:
+    name: "MedViT3D"
+    image_size: [128, 128, 128]
+    patch_size: [16, 16, 16]
+    in_channels: 4  # T1, T1ce, T2, FLAIR
+    num_classes: 4  # Background, NCR/NET, ED, ET
+    embed_dim: 768
+    depth: 12
+    num_heads: 12
+    mlp_ratio: 4.0
+    dropout: 0.1
+    task_type: "segmentation"  # segmentation, classification
+    
+  # Patch embedding configuration
+  patch_embedding:
+    projection_type: "conv3d"  # conv3d, linear
+    overlap_patches: false
+    learnable_position: true
+    
+  # Attention configuration
+  attention:
+    attention_dropout: 0.1
+    projection_dropout: 0.1
+    spatial_bias: true
+    relative_position_encoding: true
+    
+  # Training configuration
+  training:
+    optimizer: "adamw"
+    learning_rate: 1e-4
+    weight_decay: 1e-2
+    scheduler: "cosine"
+    warmup_epochs: 10
+    max_epochs: 200
+    batch_size: 2
+    gradient_clipping: 1.0
+    
+  # Data augmentation
+  augmentation:
+    random_crop: true
+    random_flip: [0.5, 0.5, 0.5]  # probability for each axis
+    random_rotation: 15  # degrees
+    random_intensity: 0.1
+    random_noise: 0.05
+    elastic_deformation: false
+    
+  # Loss function
+  loss:
+    type: "combined"  # dice, cross_entropy, focal, combined
+    dice_weight: 0.5
+    ce_weight: 0.5
+    focal_gamma: 2.0
+    class_weights: [0.1, 1.0, 1.0, 1.0]  # Background gets less weight
+    
+# Hybrid CNN-Transformer model
+hybrid_medvit:
+  # CNN backbone
+  cnn_backbone:
+    type: "resnet3d"  # resnet3d, densenet3d, efficientnet3d
+    pretrained: false
+    num_layers: 34
+    stem_channels: 64
+    
+  # Transformer component
+  transformer:
+    embed_dim: 512
+    depth: 6
+    num_heads: 8
+    reduced_resolution: true
+    
+  # Feature fusion
+  fusion:
+    type: "concatenation"  # concatenation, attention, gating
+    fusion_layers: [2, 4, 6]  # which CNN layers to fuse
+    
+# Attention visualization
+visualization:
+  attention_maps:
+    save_attention: true
+    attention_layers: [3, 6, 9, 11]  # which layers to visualize
+    head_fusion: "mean"  # mean, max, individual
+    
+  output_format:
+    save_nifti: true
+    save_numpy: true
+    save_png: true
+    
+# Multi-scale training
+multi_scale:
+  enabled: false
+  scales: [0.75, 1.0, 1.25]
+  scale_probability: [0.3, 0.4, 0.3]
+  
+# Knowledge distillation
+distillation:
+  enabled: false
+  teacher_model: "nnunet"
+  temperature: 4.0
+  alpha: 0.7  # balance between distillation and ground truth loss
+  
+# Hardware optimization
+hardware:
+  mixed_precision: true
+  compile_model: false  # PyTorch 2.0 compilation
+  channels_last: true
+  gradient_checkpointing: false
+  
+# Monitoring and logging
+monitoring:
+  log_frequency: 10
+  save_checkpoint_frequency: 5
+  validation_frequency: 1
+  early_stopping:
+    patience: 20
+    metric: "dice_score"
+    mode: "max"
+    
+  metrics:
+    - "dice_score"
+    - "iou_score"
+    - "hausdorff_distance"
+    - "average_surface_distance"
+    
+# Inference configuration
+inference:
+  use_tta: true
+  tta_transforms:
+    - "horizontal_flip"
+    - "vertical_flip"
+    - "depth_flip"
+  ensemble_models: []
+  post_processing:
+    remove_small_objects: true
+    min_object_size: 100  # voxels
+    fill_holes: true

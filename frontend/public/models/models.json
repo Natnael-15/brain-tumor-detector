@@ -1,0 +1,5 @@
+{
+  "available_models": [],
+  "fallback_enabled": true,
+  "message": "No 3D brain models found. Using procedural brain geometry."
+}

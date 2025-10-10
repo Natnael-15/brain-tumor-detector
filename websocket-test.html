@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Connection Test</h1>
+    <div id="status">Testing...</div>
+    <div id="messages"></div>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+        const messagesDiv = document.getElementById('messages');
+
+        function log(message) {
+            const div = document.createElement('div');
+            div.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            messagesDiv.appendChild(div);
+            console.log(message);
+        }
+
+        function testWebSocket(url) {
+            log('Testing: ' + url);
+            
+            const ws = new WebSocket(url);
+            
+            ws.onopen = function() {
+                log('✅ Connected to: ' + url);
+                statusDiv.textContent = 'Connected to: ' + url;
+                statusDiv.style.color = 'green';
+                
+                // Send a test message
+                ws.send(JSON.stringify({
+                    type: 'ping',
+                    timestamp: new Date().toISOString()
+                }));
+            };
+            
+            ws.onerror = function(error) {
+                log('❌ Error connecting to: ' + url);
+                log('Error details: ' + JSON.stringify(error));
+            };
+            
+            ws.onclose = function(event) {
+                log('🔴 Connection closed: ' + url + ' (code: ' + event.code + ', reason: ' + event.reason + ')');
+            };
+            
+            ws.onmessage = function(event) {
+                log('📨 Message received: ' + event.data);
+            };
+            
+            // Close after 5 seconds to test next URL
+            setTimeout(() => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+            }, 5000);
+        }
+
+        // Test URLs
+        const testUrls = [
+            'ws://localhost:8000/ws/test_user_123',
+            'ws://127.0.0.1:8000/ws/test_user_123',
+            'ws://0.0.0.0:8000/ws/test_user_123'
+        ];
+
+        let urlIndex = 0;
+        function testNext() {
+            if (urlIndex < testUrls.length) {
+                testWebSocket(testUrls[urlIndex]);
+                urlIndex++;
+                setTimeout(testNext, 6000); // Wait 6 seconds before next test
+            } else {
+                log('All tests completed');
+            }
+        }
+
+        // Start testing
+        testNext();
+    </script>
+</body>
+</html>

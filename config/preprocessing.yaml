@@ -1,0 +1,26 @@
+# Preprocessing Configuration
+preprocessing:
+  target_shape: [128, 128, 128]
+  target_spacing: [1.0, 1.0, 1.0]
+  normalization_method: "percentile"  # Options: z_score, min_max, percentile
+  skull_strip: false
+  
+augmentation:
+  enabled: true
+  rotation_range: 10
+  zoom_range: 0.1
+  flip_probability: 0.5
+  noise_std: 0.01
+  
+quality_control:
+  min_intensity_threshold: 0
+  max_intensity_threshold: 4000
+  min_volume_size: 1000  # minimum number of voxels
+  
+file_formats:
+  input_formats: [".nii", ".nii.gz", ".dcm"]
+  output_format: ".nii.gz"
+  
+logging:
+  level: "INFO"
+  progress_bar: true

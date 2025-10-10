@@ -1,0 +1,85 @@
+# nnU-Net Configuration for Brain Tumor Segmentation
+# This configuration file specifies settings for nnU-Net training and inference
+
+nnunet:
+  # Model configuration
+  model:
+    network: "3d_fullres"  # 3d_lowres, 3d_fullres, 3d_cascade_fullres
+    trainer: "nnUNetTrainerV2"
+    task_name: "Task501_BrainTumor"
+    fold: "all"  # all, 0, 1, 2, 3, 4
+    checkpoint: "model_final_checkpoint"
+    
+  # Data configuration
+  data:
+    input_modalities: ["T1", "T1ce", "T2", "FLAIR"]
+    target_spacing: [1.0, 1.0, 1.0]  # mm
+    crop_to_nonzero: true
+    normalization: "z_score"  # z_score, min_max, none
+    
+  # Training configuration
+  training:
+    max_epochs: 1000
+    batch_size: 2
+    patch_size: [128, 128, 128]
+    learning_rate: 0.01
+    momentum: 0.99
+    weight_decay: 3e-5
+    num_batches_per_epoch: 250
+    validation_frequency: 5
+    
+  # Data augmentation
+  augmentation:
+    rotation_x: [-30, 30]  # degrees
+    rotation_y: [-30, 30]
+    rotation_z: [-30, 30]
+    scaling: [0.7, 1.4]
+    elastic_deformation: true
+    gamma_correction: [0.7, 1.5]
+    mirror_axes: [0, 1, 2]
+    
+  # Inference configuration
+  inference:
+    use_tta: true  # test time augmentation
+    tta_steps: 8
+    use_mixed_precision: true
+    save_npz: false
+    overwrite_existing: false
+    
+  # Hardware configuration
+  hardware:
+    gpu_id: 0
+    num_threads_preprocessing: 6
+    num_threads_nifti_save: 2
+    use_cuda: true
+    mixed_precision: true
+    
+  # Paths
+  paths:
+    nnunet_raw_data: "./data/nnUNet_raw_data"
+    nnunet_preprocessed: "./data/nnUNet_preprocessed"
+    results_folder: "./models/nnUNet_results"
+    
+# Evaluation metrics
+evaluation:
+  metrics:
+    - "dice"
+    - "hausdorff_95"
+    - "average_surface_distance"
+    - "sensitivity"
+    - "specificity"
+    
+  regions:
+    whole_tumor: [1, 2, 4]
+    tumor_core: [1, 4]
+    enhancing_tumor: [4]
+    
+# Logging and monitoring
+logging:
+  log_level: "INFO"
+  save_training_plots: true
+  tensorboard: true
+  wandb:
+    enabled: false
+    project: "brain-tumor-nnunet"
+    entity: "brain-tumor-detector"

@@ -1,0 +1,53 @@
+# Advanced AI/ML Dependencies for Phase 1 Implementation
+
+# nnU-Net framework
+nnunet>=1.7.0
+
+# Vision Transformers and advanced deep learning
+einops>=0.6.0
+timm>=0.6.0
+
+# Medical imaging libraries
+nibabel>=4.0.0
+SimpleITK>=2.2.0
+pydicom>=2.3.0
+medpy>=0.4.0
+
+# Advanced PyTorch components
+torch>=1.12.0
+torchvision>=0.13.0
+torchaudio>=0.12.0
+
+# Transformer implementations
+transformers>=4.20.0
+accelerate>=0.20.0
+
+# Medical image processing
+itk>=5.3.0
+vtk>=9.2.0
+
+# Advanced visualization
+plotly>=5.10.0
+dash>=2.5.0
+mayavi>=4.8.0
+
+# Performance optimization
+onnx>=1.12.0
+onnxruntime>=1.12.0
+tensorrt>=8.4.0; platform_system == "Linux"
+
+# Distributed training
+deepspeed>=0.7.0
+horovod>=0.28.0
+
+# Experiment tracking
+wandb>=0.13.0
+tensorboard>=2.10.0
+
+# Data versioning
+dvc>=2.20.0
+git-lfs>=1.0.0
+
+# Medical AI specific
+monai>=1.0.0
+torchio>=0.18.0
