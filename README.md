@@ -144,7 +144,7 @@ Explore the notebooks in the `notebooks/` directory:
 - `getting_started.md` - Introduction and basic usage
 - Interactive analysis and model exploration
 
-## 📊 Datasets
+##  Datasets
 
 This project supports multiple brain tumor datasets:
 
@@ -152,24 +152,24 @@ This project supports multiple brain tumor datasets:
 - **TCIA (The Cancer Imaging Archive)**: Comprehensive medical imaging database
 - **Kaggle Brain Tumor Datasets**: Various brain tumor classification datasets
 
-## 🧠 Enhanced AI Model Architecture
+##  Enhanced AI Model Architecture
 
 The project implements state-of-the-art deep learning architectures optimized for medical imaging:
 
-### **🚀 Advanced Models (Phase 3)**
-- **🔬 Advanced 3D U-Net**: Enhanced with spatial/channel attention, deep supervision, and multi-scale feature fusion
+### ** Advanced Models (Phase 3)**
+- ** Advanced 3D U-Net**: Enhanced with spatial/channel attention, deep supervision, and multi-scale feature fusion
 - **🧬 Medical Vision Transformer**: 3D ViT optimized for medical imaging with spatial awareness and patch embeddings  
-- **⚡ Enhanced Ensemble**: Multi-model fusion with uncertainty quantification and confidence scoring
-- **🎯 nnU-Net Integration**: State-of-the-art medical segmentation with automated preprocessing
+- ** Enhanced Ensemble**: Multi-model fusion with uncertainty quantification and confidence scoring
+- ** nnU-Net Integration**: State-of-the-art medical segmentation with automated preprocessing
 
-### **🎯 Key Enhancements**
+### ** Key Enhancements**
 - **Attention Mechanisms**: Spatial and channel attention for improved focus
 - **Uncertainty Quantification**: Prediction confidence and epistemic uncertainty
 - **Deep Supervision**: Multi-scale loss computation for better training
 - **Medical-Specific Features**: Optimized for brain MRI characteristics
 - **Real-Time Inference**: Optimized architectures for clinical speed
 
-### **📊 Performance Metrics**
+### ** Performance Metrics**
 | Model | Dice Score | Sensitivity | Specificity | Inference Time |
 |-------|------------|-------------|-------------|----------------|
 | Advanced U-Net | 0.94 | 0.92 | 0.96 | 10-20s |
@@ -182,23 +182,23 @@ The project implements state-of-the-art deep learning architectures optimized fo
 - **Quality Assurance**: Automatic validation and error detection
 - **Multi-Modal Support**: T1, T1ce, T2, FLAIR sequence integration
 
-## 📈 Performance Metrics
+##  Performance Metrics
 
 - **Dice Coefficient**: Segmentation accuracy
 - **Sensitivity/Specificity**: Classification performance
 - **Hausdorff Distance**: Boundary accuracy
 - **Processing Time**: Inference speed
 
-## 🔬 Research & Development
+##  Research & Development
 
 - Explore `notebooks/` for research experiments
 - Check `docs/` for detailed technical documentation
 - Review `tests/` for quality assurance
 
-## 🚀 Upgrade Roadmap
+##  Upgrade Roadmap
 
 ### Current Status (v1.0.0)
-✅ **Complete & Production Ready**
+ **Complete & Production Ready**
 - Core tumor detection and segmentation
 - 3D visualization with Plotly/Matplotlib
 - Streamlit web interface
@@ -206,24 +206,24 @@ The project implements state-of-the-art deep learning architectures optimized fo
 - Comprehensive testing suite (6/6 tests passing)
 
 ### Phase 1: Foundation Improvements (1-2 months)
-🔥 **High Priority**
+ **High Priority**
 - **Advanced AI Models**: nnU-Net, Vision Transformers, Model Ensemble
 - **Real Medical Data**: BraTS dataset integration, TCIA API connectivity
 - **Enhanced DICOM**: Full DICOM parsing, PACS integration, metadata extraction
 
 ### Phase 2: Modern Interface & Cloud (3-6 months)
-⚡ **Medium Priority**
+ **Medium Priority**
 - **Next.js + React Frontend**: Modern UI with real-time 3D visualization
 - **FastAPI Backend**: High-performance API with async processing
 - **Cloud Deployment**: AWS/Azure/GCP with auto-scaling, Docker + Kubernetes
 
 ### Phase 3: Enterprise & Research (6+ months)
-🔬 **Research Ready**
+ **Research Ready**
 - **Federated Learning**: Multi-institutional training with privacy preservation
 - **Clinical Integration**: EHR connectivity, HIPAA compliance, workflow automation
 - **Advanced Analytics**: Radiomics, survival prediction, biomarker discovery
 
-📊 **Detailed Plans**: See [TODO.md](TODO.md) and [SPRINT_PLANNING.md](SPRINT_PLANNING.md) for comprehensive roadmap
+ **Detailed Plans**: See [TODO.md](TODO.md) and [SPRINT_PLANNING.md](SPRINT_PLANNING.md) for comprehensive roadmap
 
 ## 🤝 Contributing
 
@@ -237,7 +237,7 @@ The project implements state-of-the-art deep learning architectures optimized fo
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## ⚠️ Medical Disclaimer
+##  Medical Disclaimer
 
 This software is for research and educational purposes only. It is not intended for clinical diagnosis or treatment decisions. Always consult qualified medical professionals for medical advice.
 

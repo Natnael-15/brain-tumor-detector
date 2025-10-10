@@ -195,11 +195,11 @@ loss_fn = CombinedLoss(
 The enhanced model architecture represents a significant advancement in AI-powered brain tumor detection, incorporating state-of-the-art techniques while maintaining clinical applicability. The models provide improved accuracy, uncertainty quantification, and interpretability essential for clinical deployment.
 
 **Key Benefits:**
-- 🎯 **Higher Accuracy**: 2-4% improvement in segmentation metrics
+-  **Higher Accuracy**: 2-4% improvement in segmentation metrics
 - 🔍 **Better Interpretation**: Attention maps and uncertainty scores
-- ⚡ **Faster Inference**: Optimized architectures for clinical speed
+-  **Faster Inference**: Optimized architectures for clinical speed
 - 🛡️ **Robust Performance**: Ensemble methods for reliability
-- 📊 **Quality Assurance**: Built-in validation and error detection
+-  **Quality Assurance**: Built-in validation and error detection
 
 ---
 

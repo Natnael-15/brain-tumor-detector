@@ -1,4 +1,4 @@
-# 🧠 3D Brain Models Directory
+#  3D Brain Models Directory
 
 This directory is where you should place your downloaded 3D brain models for use in the Brain MRI Tumor Detector.
 
@@ -6,7 +6,7 @@ This directory is where you should place your downloaded 3D brain models for use
 
 ### **Recommended Sources:**
 
-1. **Sketchfab.com** 🌟 **(BEST OPTION)**
+1. **Sketchfab.com**  **(BEST OPTION)**
    - URL: https://sketchfab.com/search?features=downloadable&q=human+brain+anatomy&type=models
    - Search for: "human brain anatomy", "medical brain", "anatomical brain"
    - Look for models with **"Download"** button
@@ -37,12 +37,12 @@ This directory is where you should place your downloaded 3D brain models for use
 ## 📂 **Supported File Formats**
 
 Our Advanced 3D Brain Viewer supports these formats:
-- ✅ **GLB** (Recommended - best performance)
-- ✅ **GLTF** (Recommended - with textures)
-- ✅ **OBJ** (With optional MTL material file)
-- ✅ **FBX** (With textures and animations)
+-  **GLB** (Recommended - best performance)
+-  **GLTF** (Recommended - with textures)
+-  **OBJ** (With optional MTL material file)
+-  **FBX** (With textures and animations)
 
-## 📁 **How to Add Models**
+##  **How to Add Models**
 
 1. **Download** a brain model from one of the recommended sources
 2. **Place** the file(s) in this `/models/` directory
@@ -52,7 +52,7 @@ Our Advanced 3D Brain Viewer supports these formats:
    - `human_brain.glb` or `human_brain.gltf`
    - `anatomical_brain.glb` or `anatomical_brain.gltf`
 
-## 📋 **Example File Structure**
+##  **Example File Structure**
 
 ```
 frontend/public/models/
@@ -67,27 +67,27 @@ frontend/public/models/
 └── README.md                    ← This file
 ```
 
-## 🎯 **What Makes a Good Brain Model**
+##  **What Makes a Good Brain Model**
 
 For the best medical visualization experience, look for models with:
 
 ### **Anatomical Accuracy**
-- ✅ Realistic cerebral cortex with folding patterns (sulci and gyri)
-- ✅ Proper proportions and brain structure
-- ✅ Detailed surface geometry
-- ✅ Separate brain regions (frontal, parietal, temporal, occipital lobes)
+-  Realistic cerebral cortex with folding patterns (sulci and gyri)
+-  Proper proportions and brain structure
+-  Detailed surface geometry
+-  Separate brain regions (frontal, parietal, temporal, occipital lobes)
 
 ### **Technical Quality**
-- ✅ High polygon count (>10,000 triangles for detail)
-- ✅ Clean geometry without holes or artifacts
-- ✅ Proper UV mapping for textures
-- ✅ Realistic materials and textures
+-  High polygon count (>10,000 triangles for detail)
+-  Clean geometry without holes or artifacts
+-  Proper UV mapping for textures
+-  Realistic materials and textures
 
 ### **Medical Features**
-- ✅ Anatomically correct size and proportions
-- ✅ Realistic brain color (pinkish-gray: #ffb3d1)
-- ✅ Surface details showing brain convolutions
-- ✅ Compatible with tumor overlay visualization
+-  Anatomically correct size and proportions
+-  Realistic brain color (pinkish-gray: #ffb3d1)
+-  Surface details showing brain convolutions
+-  Compatible with tumor overlay visualization
 
 ## 🔄 **Auto-Detection**
 
@@ -100,10 +100,10 @@ The Advanced 3D Brain Viewer will automatically:
 ## 🛠️ **Troubleshooting**
 
 ### Model Not Loading?
-- ✅ Check file format is supported (GLB, GLTF, OBJ, FBX)
-- ✅ Ensure file name matches expected patterns
-- ✅ Verify file isn't corrupted (try opening in 3D software)
-- ✅ Check browser console for loading errors
+-  Check file format is supported (GLB, GLTF, OBJ, FBX)
+-  Ensure file name matches expected patterns
+-  Verify file isn't corrupted (try opening in 3D software)
+-  Check browser console for loading errors
 
 ### Model Too Large/Small?
 - The viewer automatically scales models to fit the viewport
@@ -113,7 +113,7 @@ The Advanced 3D Brain Viewer will automatically:
 - For GLTF/OBJ models, ensure texture files are in the same directory
 - GLB files embed textures automatically (recommended)
 
-## 🏥 **Medical Visualization Best Practices**
+##  **Medical Visualization Best Practices**
 
 ### For Clinical Use
 - Use anatomically accurate models from medical sources

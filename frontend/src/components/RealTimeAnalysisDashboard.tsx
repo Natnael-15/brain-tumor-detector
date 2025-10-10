@@ -391,7 +391,7 @@ export const RealTimeAnalysisDashboard: React.FC<RealTimeAnalysisDashboardProps>
     // Add the analysis update listener
     if (websocket && typeof websocket.onAnalysisUpdate === 'function') {
       const unsubscribe = websocket.onAnalysisUpdate(handleAnalysisMessage);
-      console.log('✅ WebSocket analysis listener added successfully');
+      console.log(' WebSocket analysis listener added successfully');
       
       return () => {
         unsubscribe();

@@ -2,14 +2,14 @@
 
 Welcome to the Brain MRI Tumor Detection project! This notebook will help you get started with analyzing brain MRI scans using our AI models.
 
-## 📋 Prerequisites
+##  Prerequisites
 
 Before running this notebook, make sure you have:
 - Python 3.8+ installed
 - All required dependencies from requirements.txt
 - Sample MRI data (can be generated using our scripts)
 
-## 🚀 Quick Start
+##  Quick Start
 
 Let's start by importing the necessary libraries and loading a sample brain MRI scan.
 
@@ -27,7 +27,7 @@ from data.preprocess import MRIPreprocessor
 from inference.predict import TumorPredictor
 from visualization.viewer import BrainViewer
 
-print("✅ Imports successful!")
+print(" Imports successful!")
 ```
 
 ## 📂 Data Loading
@@ -52,11 +52,11 @@ if data_dir.exists():
         print(f"MRI shape: {mri_data.shape}")
         print(f"Data range: {mri_data.min():.3f} to {mri_data.max():.3f}")
     else:
-        print("⚠️ No sample data found. Run 'python scripts/download_data.py' first")
+        print(" No sample data found. Run 'python scripts/download_data.py' first")
         # Create dummy data for demonstration
         mri_data = np.random.rand(128, 128, 128)
 else:
-    print("⚠️ Data directory not found. Creating dummy data for demonstration")
+    print(" Data directory not found. Creating dummy data for demonstration")
     mri_data = np.random.rand(128, 128, 128)
 ```
 
@@ -88,7 +88,7 @@ axes[2].axis('off')
 plt.tight_layout()
 plt.show()
 
-print("📊 Basic visualization complete!")
+print(" Basic visualization complete!")
 ```
 
 ## 🔍 Preprocessing
@@ -105,7 +105,7 @@ if mri_data.shape != (128, 128, 128):
 else:
     processed_data = normalized_data
 
-print(f"✅ Preprocessing complete!")
+print(f" Preprocessing complete!")
 print(f"Original shape: {mri_data.shape}")
 print(f"Processed shape: {processed_data.shape}")
 print(f"Processed range: {processed_data.min():.3f} to {processed_data.max():.3f}")
@@ -163,7 +163,7 @@ if has_tumor:
     plt.show()
     
 else:
-    print(f"✅ NO TUMOR DETECTED")
+    print(f" NO TUMOR DETECTED")
     print(f"   Confidence: {confidence:.1%}")
 ```
 
@@ -243,7 +243,7 @@ with open(report_file, 'w') as f:
 print(f"📄 Report saved to: {report_file}")
 ```
 
-## 🎯 Next Steps
+##  Next Steps
 
 Congratulations! You've completed the basic brain MRI analysis workflow. Here are some next steps:
 
@@ -259,4 +259,4 @@ Congratulations! You've completed the basic brain MRI analysis workflow. Here ar
 - **Model Training**: See `notebooks/model_training.ipynb`
 - **Data Analysis**: Check `notebooks/data_analysis.ipynb`
 
-Happy analyzing! 🧠✨
+Happy analyzing! ✨

@@ -1,17 +1,17 @@
-# 🏗️ Brain MRI Tumor Detector - Architecture Guide
+#  Brain MRI Tumor Detector - Architecture Guide
 
-## 📁 **Project Structure Clarification**
+##  **Project Structure Clarification**
 
 This project has evolved through multiple phases, resulting in the following architecture:
 
 ```
 brain-tumor-detector/
-├── 🆕 backend/                 # Modern FastAPI Backend (Phase 2/3)
+├──  backend/                 # Modern FastAPI Backend (Phase 2/3)
 │   ├── main.py                 # FastAPI server entry point
 │   ├── services/               # Business logic services
 │   └── uploads/                # File upload storage
 │
-├── 🆕 frontend/                # Modern Next.js Frontend (Phase 2/3)  
+├──  frontend/                # Modern Next.js Frontend (Phase 2/3)  
 │   ├── src/                    # React components & logic
 │   │   ├── app/                # Next.js 14 app directory
 │   │   ├── components/         # React components
@@ -20,22 +20,22 @@ brain-tumor-detector/
 │   ├── package.json            # Node.js dependencies
 │   └── next.config.js          # Next.js configuration
 │
-├── 📦 legacy-backend/          # Original Phase 1 Implementation
+├──  legacy-backend/          # Original Phase 1 Implementation
 │   ├── main.py                 # CLI entry point
-│   ├── models/                 # AI model implementations
+│   ├── models/                 # detection model implementations
 │   ├── data/                   # Data processing
 │   ├── training/               # Model training scripts
 │   ├── inference/              # Prediction engine
 │   └── visualization/          # Legacy visualization
 │
-├── 📊 data/                    # Training & test data
-├── 🔧 config/                  # Configuration files
+├──  data/                    # Training & test data
+├──  config/                  # Configuration files
 ├── 📚 docs/                    # Documentation
 ├── 🧪 tests/                   # Test suites
-└── 📋 scripts/                 # Utility scripts
+└──  scripts/                 # Utility scripts
 ```
 
-## 🚀 **Current Active Architecture**
+##  **Current Active Architecture**
 
 ### **Production System (Phases 2 & 3)**
 - **Backend**: `backend/main.py` (FastAPI + WebSocket)
@@ -55,9 +55,9 @@ Previously, there were two `src/` directories:
 
 This caused confusion about which implementation was active.
 
-## 🎯 **How to Use Each System**
+##  **How to Use Each System**
 
-### **🌐 Modern Web Interface (Recommended)**
+### ** Modern Web Interface (Recommended)**
 ```bash
 # Terminal 1: Start backend
 cd backend
@@ -69,7 +69,7 @@ npm run dev
 ```
 **Access**: http://localhost:3000
 
-### **🖥️ Legacy CLI Interface**
+### ** Legacy CLI Interface**
 ```bash
 # Preprocessing
 python legacy-backend/main.py --mode preprocess --input data/raw --output data/processed
@@ -81,31 +81,31 @@ python legacy-backend/main.py --mode train --input data/processed --output data/
 python legacy-backend/main.py --mode predict --input scan.nii --model data/models/best_model.pth
 ```
 
-## 🏥 **For Medical Professionals**
+##  **For Medical Professionals**
 
 **Use the Modern Web Interface** (localhost:3000):
-- ✅ Real-time analysis with WebSocket updates
-- ✅ Clinical-grade medical reporting with WHO standards
-- ✅ Interactive 3D brain visualization with tumor overlay
-- ✅ Professional medical dashboard
-- ✅ DICOM and NIfTI support
-- ✅ Analysis history and report generation
+-  Real-time analysis with WebSocket updates
+-  Clinical-grade medical reporting with WHO standards
+-  Interactive 3D brain visualization with tumor overlay
+-  Professional medical dashboard
+-  DICOM and NIfTI support
+-  Analysis history and report generation
 
-## 🔬 **For Researchers & Developers**
+##  **For Researchers & Developers**
 
 **Use the Legacy CLI** for:
-- 🧠 Training new AI models (nnU-Net, Medical ViT)
-- 📊 Batch processing large datasets  
-- 🔬 Research and experimentation
-- 📈 Performance benchmarking
-- 🏗️ Custom model development
+-  Training new detection models (nnU-Net, Medical ViT)
+-  Batch processing large datasets  
+-  Research and experimentation
+-  Performance benchmarking
+-  Custom model development
 
-## 🔧 **Integration Points**
+##  **Integration Points**
 
 The modern backend (`backend/`) automatically imports models from `legacy-backend/` when available:
-- ✅ Seamless integration between Phase 1 models and modern API
-- ✅ Graceful fallback to mock models for development
-- ✅ Real AI model predictions via FastAPI endpoints
+-  Seamless integration between Phase 1 models and modern API
+-  Graceful fallback to mock models for development
+-  Real detection model predictions via FastAPI endpoints
 
 ## 📚 **Migration Path**
 
@@ -116,4 +116,4 @@ The modern backend (`backend/`) automatically imports models from `legacy-backen
 
 ---
 
-This architecture provides the best of both worlds: a modern, clinical-grade web interface for daily use, and a powerful CLI system for research and development! 🎉
+This architecture provides the best of both worlds: a modern, clinical-grade web interface for daily use, and a powerful CLI system for research and development! 

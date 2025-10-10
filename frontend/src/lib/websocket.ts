@@ -45,7 +45,7 @@ class WebSocketClient {
    */
   async connect(userId?: string): Promise<boolean> {
     if (this.ws?.readyState === WebSocket.OPEN) {
-      console.log('✅ WebSocket already connected');
+      console.log(' WebSocket already connected');
       return true;
     }
 
@@ -60,7 +60,7 @@ class WebSocketClient {
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
-          console.log('✅ WebSocket connected successfully');
+          console.log(' WebSocket connected successfully');
           this.reconnectAttempts = 0;
           this.notifyConnectionChange(true);
           this.startHeartbeat();
@@ -74,7 +74,7 @@ class WebSocketClient {
             
             // Handle different message types
             if (data.type === 'connection_established') {
-              console.log('✅ Connection established:', data);
+              console.log(' Connection established:', data);
             } else if (data.type === 'analysis_update') {
               this.notifyMessageReceived(data);
             } else if (data.type === 'pong') {

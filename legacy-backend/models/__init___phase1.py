@@ -77,13 +77,13 @@ def get_model_status() -> Dict[str, bool]:
 
 def print_phase1_status():
     """Print Phase 1 implementation status."""
-    print("🚀 Phase 1 Advanced AI Models Status")
+    print(" Phase 1 Advanced AI Models Status")
     print("=" * 50)
     
     status = get_model_status()
     
     for component, available in status.items():
-        indicator = "✅" if available else "❌"
+        indicator = "" if available else "❌"
         print(f"{indicator} {component.replace('_', ' ').title()}")
     
     print("\n📋 Phase 1 Components:")
