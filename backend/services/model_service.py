@@ -1,4 +1,4 @@
-# Model Service for Real AI Integration
+# Model Service for Real Integration
 # Connects Phase 1 models with FastAPI backend
 
 import sys
@@ -57,7 +57,7 @@ except ImportError as e:
     logger.warning("Using mock models for development")
 
 class ModelService:
-    """Service for managing and running AI models"""
+    """Service for managing and running tumor detection models"""
     
     def __init__(self):
         self.models = {}

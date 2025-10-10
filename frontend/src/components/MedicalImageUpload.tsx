@@ -1,6 +1,6 @@
 /**
  * Medical Image Upload Component with Real-time Analysis
- * Handles file upload and triggers real-time AI analysis
+ * Handles file upload and triggers real-time medical imaging analysis
  */
 
 'use client';
@@ -74,12 +74,12 @@ interface MedicalImageUploadProps {
   onFilePreview?: (file: File) => void;
 }
 
-// Available AI models
+// Available models
 const AVAILABLE_MODELS: ModelInfo[] = [
   {
     id: 'ensemble',
     name: 'Advanced Ensemble Model',
-    description: 'Combines multiple AI models for superior accuracy',
+    description: 'Combines multiple models for superior accuracy',
     type: 'ensemble',
     estimatedTime: '3-5 minutes'
   },
@@ -375,13 +375,13 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            AI Model Selection
+            Detection Model Selection
           </Typography>
           <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Select AI Model</InputLabel>
+            <InputLabel>Select Detection Model</InputLabel>
             <Select
               value={selectedModel}
-              label="Select AI Model"
+              label="Select Detection Model"
               onChange={(e) => setSelectedModel(e.target.value)}
             >
               {AVAILABLE_MODELS.map((model) => (
@@ -552,7 +552,7 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
                 <Psychology sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
                 <Typography variant="h6">2. Select Model</Typography>
                 <Typography variant="body2">
-                  Choose an AI model based on your analysis needs
+                  Choose a detection model based on your analysis needs
                 </Typography>
               </Box>
             </Grid>

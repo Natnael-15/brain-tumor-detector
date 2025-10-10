@@ -838,7 +838,7 @@ export const RealTimeAnalysisDashboard: React.FC<RealTimeAnalysisDashboardProps>
                           </TableRow>
                           <TableRow>
                             <TableCell>
-                              <Typography variant="body2" fontWeight="bold">AI Model:</Typography>
+                              <Typography variant="body2" fontWeight="bold">Detection Model:</Typography>
                             </TableCell>
                             <TableCell>{selectedAnalysis.model}</TableCell>
                           </TableRow>
@@ -899,7 +899,7 @@ export const RealTimeAnalysisDashboard: React.FC<RealTimeAnalysisDashboardProps>
                                 </TableRow>
                                 <TableRow>
                                   <TableCell>
-                                    <Typography variant="body2" fontWeight="bold">AI Confidence:</Typography>
+                                    <Typography variant="body2" fontWeight="bold">Confidence Level:</Typography>
                                   </TableCell>
                                   <TableCell>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

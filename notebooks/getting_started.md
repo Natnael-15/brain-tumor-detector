@@ -111,15 +111,15 @@ print(f"Processed shape: {processed_data.shape}")
 print(f"Processed range: {processed_data.min():.3f} to {processed_data.max():.3f}")
 ```
 
-## 🤖 AI Analysis
+## Model Analysis
 
-Let's run our AI model on the processed data.
+Let's run the tumor detection model on the processed data.
 
 ```python
 # Note: This would normally use a trained model
 # For demonstration, we'll simulate the analysis
 
-print("🤖 Running AI analysis...")
+print("Running tumor detection analysis...")
 
 # Simulate tumor detection
 has_tumor = np.random.choice([True, False], p=[0.3, 0.7])
@@ -127,7 +127,7 @@ confidence = np.random.uniform(0.75, 0.98)
 tumor_type = np.random.choice(['Glioma', 'Meningioma', 'Pituitary', 'No Tumor'])
 
 if has_tumor:
-    print(f"⚠️ TUMOR DETECTED")
+    print(f"TUMOR DETECTED")
     print(f"   Type: {tumor_type}")
     print(f"   Confidence: {confidence:.1%}")
     
@@ -167,13 +167,13 @@ else:
     print(f"   Confidence: {confidence:.1%}")
 ```
 
-## 📊 Analysis Results
+## Analysis Results
 
 Let's generate some analysis statistics.
 
 ```python
 # Calculate some basic statistics
-print("📊 ANALYSIS RESULTS")
+print("ANALYSIS RESULTS")
 print("=" * 40)
 print(f"Volume analyzed: {np.prod(processed_data.shape):,} voxels")
 print(f"Brain volume estimate: {np.sum(processed_data > 0.1):,} mm³")
@@ -186,7 +186,7 @@ if has_tumor:
 print(f"Processing completed in simulated time")
 ```
 
-## 📋 Report Generation
+## Report Generation
 
 Finally, let's create a simple analysis report.
 
@@ -227,7 +227,8 @@ RECOMMENDATIONS:
 report += """
 DISCLAIMER:
 This analysis is for research and educational purposes only.
-Clinical decisions should be made by qualified medical professionals.
+All clinical decisions must be made by qualified medical professionals based on 
+comprehensive evaluation of patient history, symptoms, and additional diagnostic tests.
 """
 
 print(report)

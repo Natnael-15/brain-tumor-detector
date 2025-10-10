@@ -1,41 +1,41 @@
 # Brain MRI Tumor Detector
 
-A comprehensive AI-powered medical imaging application for brain tumor detection and analysis using deep learning, computer vision, and interactive visualization.
+A comprehensive medical imaging application for brain tumor detection and analysis using deep learning, computer vision, and interactive visualization.
 
-## 🎯 Features
+## Features
 
-- **AI-Powered Tumor Detection**: Upload MRI scans for automated tumor detection and analysis
+- **Automated Tumor Detection**: Upload MRI scans for automated tumor detection and analysis
 - **3D Brain Visualization**: Interactive 3D visualization with tumor highlighting
 - **Medical Reports**: Generate comprehensive medical-style analysis reports
 - **Treatment Comparison**: Compare before/after treatment scans
 - **Multiple Dataset Support**: Compatible with BraTS, TCIA, and Kaggle brain tumor datasets
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Python**: Core programming language
-- **Deep Learning**: TensorFlow/PyTorch for AI model development
+- **Deep Learning**: TensorFlow/PyTorch for model development
 - **Computer Vision**: OpenCV for image processing
 - **Visualization**: Matplotlib/Plotly for 2D/3D medical visualization
 - **Data Processing**: NumPy, Pandas for data manipulation
 - **Medical Imaging**: NiBabel, SimpleITK for medical image formats
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 brain-tumor-detector/
-├── 🆕 backend/                 # Modern FastAPI Backend (Active)
-│   ├── main.py                 # FastAPI server with WebSocket
-│   ├── services/               # Business logic & AI models
-│   └── uploads/                # File upload storage
-├── 🆕 frontend/                # Modern Next.js Frontend (Active)
+├── backend/                      # Modern FastAPI Backend (Active)
+│   ├── main.py                   # FastAPI server with WebSocket
+│   ├── services/                 # Business logic & model services
+│   └── uploads/                  # File upload storage
+├── frontend/                     # Modern Next.js Frontend (Active)
 │   ├── src/                    # React components & logic
 │   │   ├── app/                # Next.js 14 app directory
 │   │   ├── components/         # Medical UI components
 │   │   └── lib/                # WebSocket & utilities
 │   └── package.json            # Node.js dependencies
-├── 📦 legacy-backend/          # Original CLI Implementation
+├── legacy-backend/          # Original CLI Implementation
 │   ├── data/                   # Data processing modules
-│   ├── models/                 # AI model definitions (nnU-Net, ViT)
+│   ├── models/                 # Model definitions (nnU-Net, ViT)
 │   ├── training/               # Training scripts
 │   ├── inference/              # Prediction engine
 │   └── visualization/          # Legacy visualization
@@ -51,11 +51,11 @@ brain-tumor-detector/
 └── setup.py              # Package setup
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
-> **📌 CURRENT SYSTEM**: Modern web interface with real-time analysis and 3D visualization
+> **CURRENT SYSTEM**: Modern web interface with real-time analysis and 3D visualization
 
-### 🌐 **Modern Web Interface (Recommended for Clinical Use)**
+### Modern Web Interface (Recommended for Clinical Use)
 
 **Step 1: Start the Backend**
 ```bash
@@ -71,11 +71,11 @@ npm run dev
 ```
 
 **Step 3: Access the Application**
-- 🏥 **Medical Interface**: http://localhost:3000
-- 📊 **API Documentation**: http://localhost:8000/api/docs
-- 🔧 **WebSocket Test**: http://localhost:8000/api/v1/websocket/test
+- **Medical Interface**: http://localhost:3000
+- **API Documentation**: http://localhost:8000/api/docs
+- **WebSocket Test**: http://localhost:8000/api/v1/websocket/test
 
-### 🖥️ **Legacy CLI Interface (For Research & Development)**
+### Legacy CLI Interface (For Research & Development)
 
 #### Prerequisites
 
