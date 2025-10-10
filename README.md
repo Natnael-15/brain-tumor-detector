@@ -100,12 +100,12 @@ The **Brain Wave Monitoring Simulator** mimics the visualization of neural signa
 
 ## 📈 Performance Metrics
 
-| Metric          | Value |
-| ---------       | ----- |
-| Accuracy        | 95%   |
-| Precision       | 93%   |
-| Recall          | 94%   |
-| F1-Score        | 93.5% |
+| Metric    | Value |
+| --------- | ----- |
+| Accuracy  | 95%   |
+| Precision | 93%   |
+| Recall    | 94%   |
+| F1-Score  | 93.5% |
 
 ---
 
@@ -147,7 +147,7 @@ This project is for **educational and research purposes only**. It is **not inte
 
 ### 📜 License
 
-This project is released under the **MIT License** — free to use, modify, and distribute.
+This project is licensed under the [MIT License](LICENSE) — free to use, modify, and distribute.
 
 ---
 
