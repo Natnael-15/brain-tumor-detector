@@ -7,8 +7,8 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Brain MRI Tumor Detector - Phase 3',
-  description: 'Advanced AI-powered brain tumor detection and analysis with real-time WebSocket updates and 3D visualization',
-  keywords: ['brain tumor', 'MRI', 'AI', 'medical imaging', 'tumor detection', 'deep learning'],
+  description: 'Advanced automated brain tumor detection and analysis with real-time WebSocket updates and 3D visualization',
+  keywords: ['brain tumor', 'MRI', 'medical imaging', 'tumor detection', 'deep learning', 'automated diagnosis'],
   authors: [{ name: 'Brain Tumor Detector Team' }],
   icons: {
     icon: '/favicon.ico',
