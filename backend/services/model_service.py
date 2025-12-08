@@ -320,12 +320,13 @@ class MockPredictor:
     async def predict(self, file_path: str, analysis_id: str) -> Dict[str, Any]:
         """Mock prediction with realistic results and progress updates"""
         
-        # Import WebSocket manager here to avoid circular imports
+        # Import WebSocket manager from sibling module to avoid circular imports
         try:
-            from ..main import manager as websocket_manager
+            from .websocket_manager import manager as websocket_manager
         except ImportError:
-            # Fallback if import fails
+            # Fallback if import fails (graceful degradation)
             websocket_manager = None
+            logger.warning("WebSocket manager not available, progress updates disabled")
         
         # Simulate progressive analysis steps
         steps = [
