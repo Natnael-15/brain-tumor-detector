@@ -34,9 +34,13 @@ type ConnectionCallback = (connected: boolean) => void;
 class EnhancedWebSocketClient {
   private ws: WebSocket | null = null;
   
-  // Connection URLs with fallback strategy
-  private primaryUrl = 'ws://localhost:8000';
-  private fallbackUrls = ['ws://127.0.0.1:8000', 'ws://0.0.0.0:8000'];
+  // Connection URLs with fallback strategy (configurable via environment or defaults)
+  private primaryUrl = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_WS_URL 
+    ? process.env.NEXT_PUBLIC_WS_URL 
+    : 'ws://localhost:8000';
+  private fallbackUrls = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_WS_FALLBACK_URLS
+    ? process.env.NEXT_PUBLIC_WS_FALLBACK_URLS.split(',')
+    : ['ws://127.0.0.1:8000', 'ws://0.0.0.0:8000'];
   private currentUrlIndex = -1; // Start at -1 so first call gets primary URL
   
   // Reconnection settings
@@ -44,6 +48,7 @@ class EnhancedWebSocketClient {
   private maxReconnectAttempts = 15;
   private baseReconnectDelay = 1000;
   private maxReconnectDelay = 10000;
+  private connectionTimeout = 5000; // Connection timeout in milliseconds
   
   // State management
   private messageCallbacks: Set<MessageCallback> = new Set();
@@ -99,7 +104,7 @@ class EnhancedWebSocketClient {
     }
 
     this.isManualClose = false;
-    this.userId = userId || this.userId || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    this.userId = userId || this.userId || `user_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     
     return new Promise((resolve) => {
       try {
@@ -163,7 +168,7 @@ class EnhancedWebSocketClient {
             this.ws?.close();
             resolve(false);
           }
-        }, 5000);
+        }, this.connectionTimeout);
 
       } catch (error) {
         console.error('❌ Error creating EnhancedWebSocket:', error);
@@ -345,11 +350,17 @@ export function getEnhancedWebSocketClient(): EnhancedWebSocketClient {
  */
 export function useEnhancedWebSocket() {
   const clientRef = useRef<EnhancedWebSocketClient>(getEnhancedWebSocketClient());
-  const [, forceUpdate] = useState({});
+  const [isConnected, setIsConnected] = useState(clientRef.current.isConnected());
 
-  // Force update on mount to ensure latest state
   useEffect(() => {
-    forceUpdate({});
+    // Subscribe to connection state changes
+    const unsubscribe = clientRef.current.onConnectionChange((connected) => {
+      setIsConnected(connected);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   return clientRef.current;
