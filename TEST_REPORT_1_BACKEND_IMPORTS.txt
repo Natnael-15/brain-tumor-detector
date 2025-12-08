@@ -1,0 +1,48 @@
+test_01_no_circular_dependency (__main__.TestBackendImports.test_01_no_circular_dependency)
+Test 1.1: Verify no circular import between main.py and model_service.py ... WARNING:root:PyTorch not available, using mock models
+WARNING:services.model_service:Could not import Phase 1 models: No module named 'torch'
+WARNING:services.model_service:Using mock models for development
+ok
+test_02_websocket_manager_import (__main__.TestBackendImports.test_02_websocket_manager_import)
+Test 1.2: Verify websocket_manager can be imported independently ... ok
+test_03_model_service_imports_websocket_manager (__main__.TestBackendImports.test_03_model_service_imports_websocket_manager)
+Test 1.3: Verify model_service correctly imports websocket_manager ... ERROR
+test_04_main_module_startup (__main__.TestBackendImports.test_04_main_module_startup)
+Test 1.4: Verify main module can be imported without errors ... ok
+test_05_import_order_independence (__main__.TestBackendImports.test_05_import_order_independence)
+Test 1.5: Verify imports work in any order ... WARNING:root:PyTorch not available, using mock models
+WARNING:services.model_service:Could not import Phase 1 models: No module named 'torch'
+WARNING:services.model_service:Using mock models for development
+ok
+
+======================================================================
+ERROR: test_03_model_service_imports_websocket_manager (__main__.TestBackendImports.test_03_model_service_imports_websocket_manager)
+Test 1.3: Verify model_service correctly imports websocket_manager
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/brain-tumor-detector/brain-tumor-detector/tests/test_backend_imports.py", line 55, in test_03_model_service_imports_websocket_manager
+    predictor = ms_module.MockPredictor('test', {'name': 'Test'})
+                ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ModelService' object has no attribute 'MockPredictor'
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.771s
+
+FAILED (errors=1)
+
+================================================================================
+TEST REPORT 1: Backend Import & Circular Dependency Test
+================================================================================
+
+Tests Run: 5
+Successes: 4
+Failures: 0
+Errors: 1
+
+❌ SOME TESTS FAILED - Review errors above
+
+Key Findings:
+  ✅ Backend modules can be imported without circular dependency
+  ✅ WebSocket manager is properly isolated from main.py
+  ✅ Model service correctly uses relative imports
+  ✅ Import order does not affect functionality
