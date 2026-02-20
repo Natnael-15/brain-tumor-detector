@@ -37,6 +37,18 @@ class WebSocketClient {
   private reconnectTimeout: NodeJS.Timeout | null = null;
 
   constructor() {
+    const envUrl = process.env.NEXT_PUBLIC_WS_BASE_URL;
+    if (envUrl) {
+      this.url = envUrl;
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      this.url = `${wsProtocol}://${window.location.hostname}:8000`;
+      return;
+    }
+
     this.url = 'ws://localhost:8000';
   }
 

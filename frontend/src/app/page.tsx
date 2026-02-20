@@ -62,11 +62,14 @@ export default function HomePage() {
   const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(null);
   const [analysisResults, setAnalysisResults] = useState<any>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [websocketUnavailable, setWebsocketUnavailable] = useState(false);
   const [connectionStats, setConnectionStats] = useState({
     totalAnalyses: 0,
     successfulAnalyses: 0,
     averageProcessingTime: 0
   });
+
+  const effectiveConnected = isConnected || websocketUnavailable;
 
   /**
    * Handle analysis start
@@ -117,6 +120,9 @@ export default function HomePage() {
     const unsubscribe = websocket.onConnectionChange((connected) => {
       console.log('🔌 Connection status changed:', connected);
       setIsConnected(connected);
+      if (connected) {
+        setWebsocketUnavailable(false);
+      }
     });
 
     const initializeConnection = async () => {
@@ -127,6 +133,11 @@ export default function HomePage() {
         const connected = await websocket.connect(userId);
         console.log('✅ Connection result:', connected, 'for user:', userId);
         setIsConnected(connected);
+
+        if (!connected) {
+          setWebsocketUnavailable(true);
+          return;
+        }
         
         // Double-check connection status
         const isActuallyConnected = websocket.isConnected();
@@ -169,9 +180,9 @@ export default function HomePage() {
             <Card elevation={2}>
               <CardContent sx={{ textAlign: 'center', py: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                  <Psychology color={isConnected ? 'success' : 'error'} />
+                  <Psychology color={effectiveConnected ? 'success' : 'error'} />
                   <Typography variant="h6">
-                    {isConnected ? 'Connected' : 'Disconnected'}
+                    {isConnected ? 'Connected' : websocketUnavailable ? 'Connected (Polling)' : 'Disconnected'}
                   </Typography>
                 </Box>
                 <Typography variant="caption" color="text.secondary">
@@ -227,17 +238,23 @@ export default function HomePage() {
       </Box>
 
       {/* Connection Status Alert */}
-      {!isConnected && (
+      {!effectiveConnected && (
         <Alert 
           severity="warning" 
           sx={{ mb: 3 }}
           action={
-            <Button color="inherit" size="small" onClick={() => websocket.connect()}>
+            <Button color="inherit" size="small" onClick={() => { setWebsocketUnavailable(false); websocket.connect(); }}>
               Reconnect
             </Button>
           }
         >
-          Not connected to the analysis server. Attempting to reconnect...
+          Not connected to the real-time channel. Attempting to reconnect...
+        </Alert>
+      )}
+
+      {websocketUnavailable && !isConnected && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Real-time WebSocket updates are unavailable in this environment. The app will continue using API polling for analysis progress and results.
         </Alert>
       )}
 
