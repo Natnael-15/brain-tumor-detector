@@ -231,9 +231,9 @@ class ModelService:
             "type": "mock"
         }
         
-        self.models["medvit"] = {
-            "predictor": MockPredictor("medvit", self.model_configs["medvit"]),
-            "config": self.model_configs["medvit"],
+        self.models["medical_vit"] = {
+            "predictor": MockPredictor("medical_vit", self.model_configs["medical_vit"]),
+            "config": self.model_configs["medical_vit"],
             "loaded": True,
             "last_used": None,
             "type": "mock"
