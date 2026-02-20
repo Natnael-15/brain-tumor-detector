@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Tuple, Any
 import asyncio
 from datetime import datetime
 import traceback
+import inspect
 
 # Try to import torch, fall back to mock mode if not available
 try:
@@ -26,27 +27,24 @@ sys.path.append(str(project_root / "src"))
 
 # Import actual models from Phase 1
 UNet3D = None
-ResNet3DClassifier = None
+ResNet3D = None
 MultiModalCNN = None
 TumorPredictor = None
 MRIPreprocessor = None
-Config = None
+load_config = None
 MODELS_AVAILABLE = False
 
 try:
     # Add legacy-backend path to sys.path to import Phase 1 models
-    import sys
-    from pathlib import Path
-    project_root = Path(__file__).parent.parent.parent
     legacy_backend_path = str(project_root / "legacy-backend")
     
     if legacy_backend_path not in sys.path:
         sys.path.insert(0, legacy_backend_path)
         
-    from models import UNet3D, ResNet3DClassifier, MultiModalCNN  # type: ignore
+    from models import UNet3D, ResNet3D, MultiModalCNN  # type: ignore
     from inference.predict import TumorPredictor  # type: ignore
-    from data.preprocessor import MRIPreprocessor  # type: ignore
-    from utils.config import Config  # type: ignore
+    from data.preprocess import MRIPreprocessor  # type: ignore
+    from utils.config import load_config  # type: ignore
     MODELS_AVAILABLE = True
     logger = logging.getLogger(__name__)
     logger.info("Successfully imported Phase 1 models from legacy-backend")
@@ -150,12 +148,13 @@ class ModelService:
         """Initialize all available models"""
         logger.info("Initializing AI models...")
         
-        if MODELS_AVAILABLE and Config is not None and MRIPreprocessor is not None:
+        if MODELS_AVAILABLE and MRIPreprocessor is not None:
             try:
-                # Initialize preprocessor
-                config = Config()
-                self.preprocessor = MRIPreprocessor(config)
-                
+                # Initialize preprocessor from config file when available
+                preprocessing_config = project_root / "config" / "preprocessing.yaml"
+                config_path = str(preprocessing_config) if preprocessing_config.exists() else None
+                self.preprocessor = MRIPreprocessor(config_path)
+
                 # Load actual models
                 await self._load_real_models()
                 
@@ -231,9 +230,9 @@ class ModelService:
             "type": "mock"
         }
         
-        self.models["medvit"] = {
-            "predictor": MockPredictor("medvit", self.model_configs["medvit"]),
-            "config": self.model_configs["medvit"],
+        self.models["medical_vit"] = {
+            "predictor": MockPredictor("medical_vit", self.model_configs["medical_vit"]),
+            "config": self.model_configs["medical_vit"],
             "loaded": True,
             "last_used": None,
             "type": "mock"
@@ -286,10 +285,34 @@ class ModelService:
             # Update last used timestamp
             self.models[model_id]["last_used"] = datetime.now()
             
-            # Run prediction
+            # Run prediction (supports async mock predictors and sync legacy predictors)
             logger.info(f"Running prediction with {model_id} for analysis {analysis_id}")
-            result = await predictor.predict(file_path, analysis_id)
-            
+
+            try:
+                predict_signature = inspect.signature(predictor.predict)
+            except (TypeError, ValueError):
+                predict_signature = None
+
+            if predict_signature is not None and "analysis_id" in predict_signature.parameters:
+                prediction_result = predictor.predict(file_path, analysis_id=analysis_id)
+            elif predict_signature is not None and len(predict_signature.parameters) >= 2:
+                prediction_result = predictor.predict(file_path, analysis_id)
+            elif predict_signature is not None:
+                prediction_result = predictor.predict(file_path)
+            else:
+                try:
+                    prediction_result = predictor.predict(file_path, analysis_id=analysis_id)
+                except TypeError:
+                    try:
+                        prediction_result = predictor.predict(file_path, analysis_id)
+                    except TypeError:
+                        prediction_result = predictor.predict(file_path)
+
+            result = await prediction_result if inspect.isawaitable(prediction_result) else prediction_result
+
+            if not isinstance(result, dict):
+                raise TypeError(f"Predictor {model_id} returned {type(result).__name__}, expected dict")
+
             # Add model metadata to result
             result.update({
                 "model_id": model_id,
