@@ -269,7 +269,7 @@ class ConnectionManager:
     
     def get_connection_stats(self) -> Dict:
         """Get connection statistics"""
-        total_connections = sum(len(connections) for connections in self.active_connections.values())
+        total_connections = len(self.connection_metadata)
         total_users = len(self.user_connections)
         active_analyses = len(self.active_connections)
         

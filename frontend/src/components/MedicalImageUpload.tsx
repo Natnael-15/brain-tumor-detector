@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import {
   Box,
@@ -13,6 +13,7 @@ import {
   Typography,
   Button,
   Grid,
+  Stack,
   Card,
   CardContent,
   CardActions,
@@ -23,6 +24,7 @@ import {
   Chip,
   LinearProgress,
   Alert,
+  Skeleton,
   List,
   ListItem,
   ListItemIcon,
@@ -32,7 +34,10 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Stepper,
+  Step,
+  StepLabel
 } from '@mui/material';
 import {
   CloudUpload,
@@ -65,7 +70,9 @@ interface ModelInfo {
   name: string;
   description: string;
   type: string;
-  estimatedTime: string;
+  estimatedTime?: string;
+  loaded?: boolean;
+  model_type?: string;
 }
 
 interface MedicalImageUploadProps {
@@ -91,7 +98,7 @@ const AVAILABLE_MODELS: ModelInfo[] = [
     estimatedTime: '2-3 minutes'
   },
   {
-    id: 'medvit',
+    id: 'medical_vit',
     name: 'Medical Vision Transformer',
     description: 'Advanced transformer architecture for medical imaging',
     type: 'classification',
@@ -120,6 +127,10 @@ const AVAILABLE_MODELS: ModelInfo[] = [
   }
 ];
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const POLL_INTERVAL_MS = 1500;
+const MAX_POLL_ATTEMPTS = 120;
+
 export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
   onAnalysisStart,
   onAnalysisComplete,
@@ -129,8 +140,47 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('ensemble');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [previewDialog, setPreviewDialog] = useState<{ open: boolean; file?: File }>({ open: false });
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewDialog, setPreviewDialog] = useState<{ open: boolean; file?: File; previewUrl?: string }>({ open: false });
+  const [availableModels, setAvailableModels] = useState<ModelInfo[]>(AVAILABLE_MODELS);
+  const [modelsLoading, setModelsLoading] = useState(true);
+  const [modelsError, setModelsError] = useState<string | null>(null);
+
+
+  useEffect(() => {
+    const loadModels = async () => {
+      try {
+        setModelsLoading(true);
+        setModelsError(null);
+        const response = await fetch('http://localhost:8000/api/v1/models');
+        if (!response.ok) {
+          throw new Error(`Failed to load models (${response.status})`);
+        }
+
+        const data = await response.json();
+        const modelsFromApi: ModelInfo[] = (data.models || []).map((model: any) => ({
+          id: model.id === 'medvit' ? 'medical_vit' : model.id,
+          name: model.name,
+          description: model.description,
+          type: model.type,
+          estimatedTime: model.inference_time || 'Unknown',
+          loaded: model.loaded,
+          model_type: model.model_type
+        }));
+
+        if (modelsFromApi.length > 0) {
+          setAvailableModels(modelsFromApi);
+          setSelectedModel((current) => modelsFromApi.some((model) => model.id === current) ? current : modelsFromApi[0].id);
+        }
+      } catch (error) {
+        console.error('Error loading models:', error);
+        setModelsError('Using fallback model list because live model metadata is unavailable.');
+      } finally {
+        setModelsLoading(false);
+      }
+    };
+
+    loadModels();
+  }, []);
 
   /**
    * Handle file drop/selection
@@ -172,7 +222,7 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
         prev.map(f => f.id === uploadedFile.id ? { ...f, status: 'uploading', progress: 0 } : f)
       );
 
-      const response = await fetch('http://localhost:8000/api/v1/analysis/upload', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/analysis/upload`, {
         method: 'POST',
         headers: {
           'Authorization': 'Bearer mock-token', // Add demo authentication
@@ -211,13 +261,105 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
     }
   };
 
+  const monitorAnalysisStatus = async (analysisId: string, fileId: string) => {
+    for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
+      try {
+        const statusResponse = await fetch(`${API_BASE_URL}/api/v1/analysis/${analysisId}/status`, {
+          headers: {
+            Authorization: 'Bearer mock-token'
+          }
+        });
+
+        if (!statusResponse.ok) {
+          throw new Error(`Status check failed (${statusResponse.status})`);
+        }
+
+        const statusData = await statusResponse.json();
+        const normalizedProgress = Math.max(10, Math.min(100, Number(statusData.progress || 0)));
+
+        if (statusData.status === 'completed') {
+          const resultsResponse = await fetch(`${API_BASE_URL}/api/v1/analysis/${analysisId}/results`, {
+            headers: {
+              Authorization: 'Bearer mock-token'
+            }
+          });
+
+          if (!resultsResponse.ok) {
+            throw new Error(`Result fetch failed (${resultsResponse.status})`);
+          }
+
+          const results = await resultsResponse.json();
+
+          setUploadedFiles((prev) =>
+            prev.map((file) =>
+              file.id === fileId
+                ? { ...file, status: 'complete', progress: 100 }
+                : file
+            )
+          );
+
+          if (onAnalysisComplete) {
+            onAnalysisComplete(results);
+          }
+          return;
+        }
+
+        if (statusData.status === 'failed') {
+          const errorMessage = statusData.error || 'Analysis failed';
+          setUploadedFiles((prev) =>
+            prev.map((file) =>
+              file.id === fileId
+                ? { ...file, status: 'error', error: errorMessage, progress: normalizedProgress }
+                : file
+            )
+          );
+          toast.error(`Analysis failed: ${errorMessage}`);
+          return;
+        }
+
+        setUploadedFiles((prev) =>
+          prev.map((file) =>
+            file.id === fileId
+              ? { ...file, status: 'analyzing', progress: normalizedProgress }
+              : file
+          )
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to monitor analysis status';
+        setUploadedFiles((prev) =>
+          prev.map((file) =>
+            file.id === fileId
+              ? { ...file, status: 'error', error: message }
+              : file
+          )
+        );
+        toast.error(message);
+        return;
+      }
+    }
+
+    setUploadedFiles((prev) =>
+      prev.map((file) =>
+        file.id === fileId
+          ? { ...file, status: 'error', error: 'Analysis timed out. Please retry.' }
+          : file
+      )
+    );
+    toast.error('Analysis timed out. Please retry.');
+  };
+
   /**
    * Start analysis for a specific file
    */
   const startAnalysis = async (uploadedFile: UploadedFile) => {
     const analysisId = await uploadFile(uploadedFile);
-    if (analysisId && onAnalysisStart) {
-      onAnalysisStart(analysisId, [uploadedFile], selectedModel);
+    if (analysisId) {
+      if (onAnalysisStart) {
+        onAnalysisStart(analysisId, [uploadedFile], selectedModel);
+      }
+      void monitorAnalysisStatus(analysisId, uploadedFile.id);
     }
     return analysisId;
   };
@@ -284,7 +426,7 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
    * Preview file
    */
   const previewFile = (file: File) => {
-    setPreviewDialog({ open: true, file });
+    setPreviewDialog({ open: true, file, previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined });
     if (onFilePreview) {
       onFilePreview(file);
     }
@@ -313,6 +455,29 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
   /**
    * Get model icon based on type
    */
+  const counts = {
+    pending: uploadedFiles.filter((f) => f.status === 'pending').length,
+    uploading: uploadedFiles.filter((f) => f.status === 'uploading').length,
+    analyzing: uploadedFiles.filter((f) => f.status === 'analyzing').length,
+    complete: uploadedFiles.filter((f) => f.status === 'complete').length,
+    error: uploadedFiles.filter((f) => f.status === 'error').length
+  };
+
+  const overallProgress = uploadedFiles.length
+    ? uploadedFiles.reduce((acc, file) => acc + file.progress, 0) / uploadedFiles.length
+    : 0;
+
+  const pipelineSteps = ['Upload', 'Preprocess', 'Inference', 'Review'];
+  const currentStep = counts.complete > 0
+    ? 3
+    : counts.analyzing > 0
+      ? 2
+      : counts.uploading > 0
+        ? 1
+        : counts.pending > 0
+          ? 0
+          : 0;
+
   const getModelIcon = (type: string) => {
     switch (type) {
       case 'ensemble':
@@ -330,10 +495,46 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
+      <Typography variant="h4" gutterBottom sx={{ mb: 1, display: 'flex', alignItems: 'center', fontWeight: 700 }}>
         <CloudUpload sx={{ mr: 2 }} />
         Medical Image Upload & Analysis
       </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+        Redesigned workflow view with live pipeline status and clearer outcome tracking.
+      </Typography>
+
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        {[
+          { label: 'Files queued', value: counts.pending, color: 'warning.main' },
+          { label: 'Analyzing', value: counts.analyzing, color: 'info.main' },
+          { label: 'Completed', value: counts.complete, color: 'success.main' },
+          { label: 'Errors', value: counts.error, color: 'error.main' }
+        ].map((item) => (
+          <Grid item xs={12} sm={6} md={3} key={item.label}>
+            <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+              <CardContent>
+                <Typography variant="caption" color="text.secondary">{item.label}</Typography>
+                <Typography variant="h4" sx={{ color: item.color, fontWeight: 700 }}>{item.value}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      <Card sx={{ mb: 3, borderRadius: 3 }}>
+        <CardContent>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>Live Pipeline</Typography>
+          <Stepper activeStep={currentStep} alternativeLabel sx={{ mb: 2 }}>
+            {pipelineSteps.map((step) => (
+              <Step key={step}>
+                <StepLabel>{step}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+          <LinearProgress variant="determinate" value={overallProgress} sx={{ height: 10, borderRadius: 5 }} />
+          <Typography variant="caption" color="text.secondary">Overall progress: {overallProgress.toFixed(0)}%</Typography>
+        </CardContent>
+      </Card>
 
       {/* Upload Area */}
       <Paper
@@ -344,9 +545,11 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
           border: 2,
           borderStyle: 'dashed',
           borderColor: isDragActive ? 'primary.main' : 'grey.300',
-          bgcolor: isDragActive ? 'primary.50' : 'grey.50',
+          bgcolor: isDragActive ? 'primary.50' : 'background.paper',
           cursor: 'pointer',
           transition: 'all 0.3s ease',
+          borderRadius: 4,
+          boxShadow: isDragActive ? '0 8px 24px rgba(25, 118, 210, 0.18)' : '0 4px 14px rgba(0,0,0,0.06)',
           '&:hover': {
             borderColor: 'primary.main',
             bgcolor: 'primary.50'
@@ -372,19 +575,25 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
       </Paper>
 
       {/* Model Selection */}
-      <Card sx={{ mb: 3 }}>
+      <Card sx={{ mb: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             Detection Model Selection
           </Typography>
-          <FormControl fullWidth sx={{ mb: 2 }}>
+          {modelsLoading && <Skeleton variant="rounded" height={52} sx={{ mb: 2 }} />}
+          {modelsError && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {modelsError}
+            </Alert>
+          )}
+          <FormControl fullWidth sx={{ mb: 2 }} disabled={modelsLoading}>
             <InputLabel>Select Detection Model</InputLabel>
             <Select
               value={selectedModel}
               label="Select Detection Model"
               onChange={(e) => setSelectedModel(e.target.value)}
             >
-              {AVAILABLE_MODELS.map((model) => (
+              {availableModels.map((model) => (
                 <MenuItem key={model.id} value={model.id}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {getModelIcon(model.type)}
@@ -404,11 +613,11 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
           {selectedModel && (
             <Alert severity="info" sx={{ mt: 2 }}>
               <Typography variant="body2">
-                <strong>{AVAILABLE_MODELS.find(m => m.id === selectedModel)?.name}</strong>
+                <strong>{availableModels.find(m => m.id === selectedModel)?.name}</strong>
                 <br />
-                {AVAILABLE_MODELS.find(m => m.id === selectedModel)?.description}
+                {availableModels.find(m => m.id === selectedModel)?.description}
                 <br />
-                Estimated processing time: {AVAILABLE_MODELS.find(m => m.id === selectedModel)?.estimatedTime}
+                Estimated processing time: {availableModels.find(m => m.id === selectedModel)?.estimatedTime || 'Unknown'}
               </Typography>
             </Alert>
           )}
@@ -507,7 +716,12 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
       {/* File Preview Dialog */}
       <Dialog
         open={previewDialog.open}
-        onClose={() => setPreviewDialog({ open: false })}
+        onClose={() => {
+          if (previewDialog.previewUrl) {
+            URL.revokeObjectURL(previewDialog.previewUrl);
+          }
+          setPreviewDialog({ open: false });
+        }}
         maxWidth="md"
         fullWidth
       >
@@ -516,7 +730,7 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
           {previewDialog.file && previewDialog.file.type.startsWith('image/') && (
             <Box sx={{ textAlign: 'center' }}>
               <img
-                src={URL.createObjectURL(previewDialog.file)}
+                src={previewDialog.previewUrl}
                 alt="File preview"
                 style={{ maxWidth: '100%', maxHeight: '400px' }}
               />
@@ -527,41 +741,73 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPreviewDialog({ open: false })}>Close</Button>
+          <Button onClick={() => {
+            if (previewDialog.previewUrl) {
+              URL.revokeObjectURL(previewDialog.previewUrl);
+            }
+            setPreviewDialog({ open: false });
+          }}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Expected Outcomes Coverage
+          </Typography>
+          <Grid container spacing={1.5}>
+            {['No tumor detected', 'Tumor detected (high confidence)', 'Tumor detected (low confidence)', 'Segmentation unavailable', 'Analysis failed / retry required'].map((outcome) => (
+              <Grid item xs={12} sm={6} md={4} key={outcome}>
+                <Chip label={outcome} variant="outlined" color="primary" sx={{ width: '100%', justifyContent: 'flex-start' }} />
+              </Grid>
+            ))}
+          </Grid>
+        </CardContent>
+      </Card>
 
       {/* Usage Instructions */}
       <Card>
         <CardContent>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>
             How to Use
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Follow this quick clinical workflow to ensure reliable tumor-analysis results and faster review turnaround.
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center', p: 2 }}>
+              <Box sx={{ textAlign: 'center', p: 2, borderRadius: 2, bgcolor: 'primary.50', border: '1px solid', borderColor: 'primary.100', height: '100%' }}>
                 <CloudUpload sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
                 <Typography variant="h6">1. Upload</Typography>
                 <Typography variant="body2">
                   Drag & drop or click to select medical images
                 </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center', p: 2 }}>
-                <Psychology sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-                <Typography variant="h6">2. Select Model</Typography>
-                <Typography variant="body2">
-                  Choose a detection model based on your analysis needs
+                <Typography variant="caption" color="text.secondary">
+                  Tip: Prefer NIfTI/DICOM files for best model compatibility.
                 </Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center', p: 2 }}>
-                <Analytics sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
+              <Box sx={{ textAlign: 'center', p: 2, borderRadius: 2, bgcolor: 'info.50', border: '1px solid', borderColor: 'info.100', height: '100%' }}>
+                <Psychology sx={{ fontSize: 40, color: 'info.main', mb: 1 }} />
+                <Typography variant="h6">2. Select Model</Typography>
+                <Typography variant="body2">
+                  Choose a detection model based on your analysis needs
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Live model metadata is loaded automatically from the backend.
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ textAlign: 'center', p: 2, borderRadius: 2, bgcolor: 'success.50', border: '1px solid', borderColor: 'success.100', height: '100%' }}>
+                <Analytics sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
                 <Typography variant="h6">3. Analyze</Typography>
                 <Typography variant="body2">
                   Start analysis and monitor real-time progress
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Review confidence, outcome state, and follow-up recommendations.
                 </Typography>
               </Box>
             </Grid>

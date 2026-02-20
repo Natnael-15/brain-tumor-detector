@@ -36,9 +36,6 @@ MODELS_AVAILABLE = False
 
 try:
     # Add legacy-backend path to sys.path to import Phase 1 models
-    import sys
-    from pathlib import Path
-    project_root = Path(__file__).parent.parent.parent
     legacy_backend_path = str(project_root / "legacy-backend")
     
     if legacy_backend_path not in sys.path:
@@ -291,13 +288,25 @@ class ModelService:
             # Run prediction (supports async mock predictors and sync legacy predictors)
             logger.info(f"Running prediction with {model_id} for analysis {analysis_id}")
 
-            predict_signature = inspect.signature(predictor.predict)
-            if "analysis_id" in predict_signature.parameters:
+            try:
+                predict_signature = inspect.signature(predictor.predict)
+            except (TypeError, ValueError):
+                predict_signature = None
+
+            if predict_signature is not None and "analysis_id" in predict_signature.parameters:
                 prediction_result = predictor.predict(file_path, analysis_id=analysis_id)
-            elif len(predict_signature.parameters) >= 2:
+            elif predict_signature is not None and len(predict_signature.parameters) >= 2:
                 prediction_result = predictor.predict(file_path, analysis_id)
-            else:
+            elif predict_signature is not None:
                 prediction_result = predictor.predict(file_path)
+            else:
+                try:
+                    prediction_result = predictor.predict(file_path, analysis_id=analysis_id)
+                except TypeError:
+                    try:
+                        prediction_result = predictor.predict(file_path, analysis_id)
+                    except TypeError:
+                        prediction_result = predictor.predict(file_path)
 
             result = await prediction_result if inspect.isawaitable(prediction_result) else prediction_result
 
@@ -334,12 +343,13 @@ class MockPredictor:
     async def predict(self, file_path: str, analysis_id: str) -> Dict[str, Any]:
         """Mock prediction with realistic results and progress updates"""
         
-        # Import WebSocket manager here to avoid circular imports
+        # Import WebSocket manager from sibling module to avoid circular imports
         try:
-            from ..main import manager as websocket_manager
+            from .websocket_manager import manager as websocket_manager
         except ImportError:
-            # Fallback if import fails
+            # Fallback if import fails (graceful degradation)
             websocket_manager = None
+            logger.warning("WebSocket manager not available, progress updates disabled")
         
         # Simulate progressive analysis steps
         steps = [
