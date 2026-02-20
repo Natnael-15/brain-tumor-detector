@@ -62,6 +62,7 @@ export default function HomePage() {
   const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(null);
   const [analysisResults, setAnalysisResults] = useState<any>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [websocketUnavailable, setWebsocketUnavailable] = useState(false);
   const [connectionStats, setConnectionStats] = useState({
     totalAnalyses: 0,
     successfulAnalyses: 0,
@@ -127,6 +128,12 @@ export default function HomePage() {
         const connected = await websocket.connect(userId);
         console.log('✅ Connection result:', connected, 'for user:', userId);
         setIsConnected(connected);
+
+        if (!connected) {
+          websocket.disconnect();
+          setWebsocketUnavailable(true);
+          return;
+        }
         
         // Double-check connection status
         const isActuallyConnected = websocket.isConnected();
@@ -238,6 +245,12 @@ export default function HomePage() {
           }
         >
           Not connected to the analysis server. Attempting to reconnect...
+        </Alert>
+      )}
+
+      {websocketUnavailable && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Real-time WebSocket updates are unavailable in this environment. The app will continue using API polling for analysis progress and results.
         </Alert>
       )}
 

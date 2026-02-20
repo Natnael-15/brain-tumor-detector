@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   keywords: ['brain tumor', 'MRI', 'medical imaging', 'tumor detection', 'deep learning', 'automated diagnosis'],
   authors: [{ name: 'Brain Tumor Detector Team' }],
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.svg',
   },
 };
 
@@ -29,7 +29,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#1976d2" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body className={inter.className} suppressHydrationWarning>
