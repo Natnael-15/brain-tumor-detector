@@ -86,6 +86,37 @@ class ConnectionManager:
         
         logger.info(f"WebSocket disconnected: user={user_id}, analysis={analysis_id}, connection={connection_id}")
     
+    def update_analysis_subscription(self, websocket: WebSocket, analysis_id: str):
+        """Move a websocket to the requested analysis subscription."""
+        if websocket not in self.connection_metadata:
+            return
+
+        metadata = self.connection_metadata[websocket]
+        previous_analysis_id = metadata.get("analysis_id")
+
+        if previous_analysis_id and previous_analysis_id in self.active_connections:
+            self.active_connections[previous_analysis_id].discard(websocket)
+            if not self.active_connections[previous_analysis_id]:
+                del self.active_connections[previous_analysis_id]
+
+        if analysis_id not in self.active_connections:
+            self.active_connections[analysis_id] = set()
+        self.active_connections[analysis_id].add(websocket)
+        metadata["analysis_id"] = analysis_id
+
+    def remove_analysis_subscription(self, websocket: WebSocket, analysis_id: Optional[str] = None):
+        """Remove a websocket from an analysis subscription."""
+        metadata = self.connection_metadata.get(websocket)
+        target_analysis_id = analysis_id or (metadata.get("analysis_id") if metadata else None)
+
+        if target_analysis_id and target_analysis_id in self.active_connections:
+            self.active_connections[target_analysis_id].discard(websocket)
+            if not self.active_connections[target_analysis_id]:
+                del self.active_connections[target_analysis_id]
+
+        if metadata and metadata.get("analysis_id") == target_analysis_id:
+            metadata["analysis_id"] = None
+
     async def send_personal_message(self, message: Dict, websocket: WebSocket):
         """Send message to a specific WebSocket connection"""
         if websocket.client_state == WebSocketState.CONNECTED:
@@ -238,7 +269,7 @@ class ConnectionManager:
     
     def get_connection_stats(self) -> Dict:
         """Get connection statistics"""
-        total_connections = sum(len(connections) for connections in self.active_connections.values())
+        total_connections = len(self.connection_metadata)
         total_users = len(self.user_connections)
         active_analyses = len(self.active_connections)
         
@@ -295,14 +326,8 @@ async def handle_websocket_message(websocket: WebSocket, data: Dict):
     elif message_type == "subscribe_analysis":
         analysis_id = data.get("analysis_id")
         if analysis_id and websocket in manager.connection_metadata:
-            metadata = manager.connection_metadata[websocket]
-            metadata["analysis_id"] = analysis_id
-            
-            # Add to analysis connections
-            if analysis_id not in manager.active_connections:
-                manager.active_connections[analysis_id] = set()
-            manager.active_connections[analysis_id].add(websocket)
-            
+            manager.update_analysis_subscription(websocket, analysis_id)
+
             # Send confirmation
             await manager.send_personal_message({
                 "type": "subscription_confirmed",
@@ -311,10 +336,8 @@ async def handle_websocket_message(websocket: WebSocket, data: Dict):
             }, websocket)
     elif message_type == "unsubscribe_analysis":
         analysis_id = data.get("analysis_id")
-        if analysis_id and analysis_id in manager.active_connections:
-            manager.active_connections[analysis_id].discard(websocket)
-            if not manager.active_connections[analysis_id]:
-                del manager.active_connections[analysis_id]
+        if websocket in manager.connection_metadata:
+            manager.remove_analysis_subscription(websocket, analysis_id)
     else:
         logger.warning(f"Unknown WebSocket message type: {message_type}")
 
