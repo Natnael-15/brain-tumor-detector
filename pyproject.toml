@@ -1,5 +1,13 @@
 # Brain MRI Tumor Detector - Development Configuration
 
+[project]
+name = "brain-tumor-detector"
+version = "3.0.0"
+requires-python = ">=3.8"
+
+[project.scripts]
+app = "api.index:app"
+
 [tool.black]
 line-length = 88
 target-version = ['py38']
