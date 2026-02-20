@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import {
   Box,
@@ -23,6 +23,7 @@ import {
   Chip,
   LinearProgress,
   Alert,
+  Skeleton,
   List,
   ListItem,
   ListItemIcon,
@@ -65,7 +66,9 @@ interface ModelInfo {
   name: string;
   description: string;
   type: string;
-  estimatedTime: string;
+  estimatedTime?: string;
+  loaded?: boolean;
+  model_type?: string;
 }
 
 interface MedicalImageUploadProps {
@@ -91,7 +94,7 @@ const AVAILABLE_MODELS: ModelInfo[] = [
     estimatedTime: '2-3 minutes'
   },
   {
-    id: 'medvit',
+    id: 'medical_vit',
     name: 'Medical Vision Transformer',
     description: 'Advanced transformer architecture for medical imaging',
     type: 'classification',
@@ -129,8 +132,47 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('ensemble');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [previewDialog, setPreviewDialog] = useState<{ open: boolean; file?: File }>({ open: false });
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewDialog, setPreviewDialog] = useState<{ open: boolean; file?: File; previewUrl?: string }>({ open: false });
+  const [availableModels, setAvailableModels] = useState<ModelInfo[]>(AVAILABLE_MODELS);
+  const [modelsLoading, setModelsLoading] = useState(true);
+  const [modelsError, setModelsError] = useState<string | null>(null);
+
+
+  useEffect(() => {
+    const loadModels = async () => {
+      try {
+        setModelsLoading(true);
+        setModelsError(null);
+        const response = await fetch('http://localhost:8000/api/v1/models');
+        if (!response.ok) {
+          throw new Error(`Failed to load models (${response.status})`);
+        }
+
+        const data = await response.json();
+        const modelsFromApi: ModelInfo[] = (data.models || []).map((model: any) => ({
+          id: model.id === 'medvit' ? 'medical_vit' : model.id,
+          name: model.name,
+          description: model.description,
+          type: model.type,
+          estimatedTime: model.inference_time || 'Unknown',
+          loaded: model.loaded,
+          model_type: model.model_type
+        }));
+
+        if (modelsFromApi.length > 0) {
+          setAvailableModels(modelsFromApi);
+          setSelectedModel((current) => modelsFromApi.some((model) => model.id === current) ? current : modelsFromApi[0].id);
+        }
+      } catch (error) {
+        console.error('Error loading models:', error);
+        setModelsError('Using fallback model list because live model metadata is unavailable.');
+      } finally {
+        setModelsLoading(false);
+      }
+    };
+
+    loadModels();
+  }, []);
 
   /**
    * Handle file drop/selection
@@ -284,7 +326,7 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
    * Preview file
    */
   const previewFile = (file: File) => {
-    setPreviewDialog({ open: true, file });
+    setPreviewDialog({ open: true, file, previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined });
     if (onFilePreview) {
       onFilePreview(file);
     }
@@ -377,14 +419,20 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
           <Typography variant="h6" gutterBottom>
             Detection Model Selection
           </Typography>
-          <FormControl fullWidth sx={{ mb: 2 }}>
+          {modelsLoading && <Skeleton variant="rounded" height={52} sx={{ mb: 2 }} />}
+          {modelsError && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {modelsError}
+            </Alert>
+          )}
+          <FormControl fullWidth sx={{ mb: 2 }} disabled={modelsLoading}>
             <InputLabel>Select Detection Model</InputLabel>
             <Select
               value={selectedModel}
               label="Select Detection Model"
               onChange={(e) => setSelectedModel(e.target.value)}
             >
-              {AVAILABLE_MODELS.map((model) => (
+              {availableModels.map((model) => (
                 <MenuItem key={model.id} value={model.id}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {getModelIcon(model.type)}
@@ -404,11 +452,11 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
           {selectedModel && (
             <Alert severity="info" sx={{ mt: 2 }}>
               <Typography variant="body2">
-                <strong>{AVAILABLE_MODELS.find(m => m.id === selectedModel)?.name}</strong>
+                <strong>{availableModels.find(m => m.id === selectedModel)?.name}</strong>
                 <br />
-                {AVAILABLE_MODELS.find(m => m.id === selectedModel)?.description}
+                {availableModels.find(m => m.id === selectedModel)?.description}
                 <br />
-                Estimated processing time: {AVAILABLE_MODELS.find(m => m.id === selectedModel)?.estimatedTime}
+                Estimated processing time: {availableModels.find(m => m.id === selectedModel)?.estimatedTime || 'Unknown'}
               </Typography>
             </Alert>
           )}
@@ -507,7 +555,12 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
       {/* File Preview Dialog */}
       <Dialog
         open={previewDialog.open}
-        onClose={() => setPreviewDialog({ open: false })}
+        onClose={() => {
+          if (previewDialog.previewUrl) {
+            URL.revokeObjectURL(previewDialog.previewUrl);
+          }
+          setPreviewDialog({ open: false });
+        }}
         maxWidth="md"
         fullWidth
       >
@@ -516,7 +569,7 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
           {previewDialog.file && previewDialog.file.type.startsWith('image/') && (
             <Box sx={{ textAlign: 'center' }}>
               <img
-                src={URL.createObjectURL(previewDialog.file)}
+                src={previewDialog.previewUrl}
                 alt="File preview"
                 style={{ maxWidth: '100%', maxHeight: '400px' }}
               />
@@ -527,9 +580,29 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPreviewDialog({ open: false })}>Close</Button>
+          <Button onClick={() => {
+            if (previewDialog.previewUrl) {
+              URL.revokeObjectURL(previewDialog.previewUrl);
+            }
+            setPreviewDialog({ open: false });
+          }}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Expected Outcomes Coverage
+          </Typography>
+          <Grid container spacing={1.5}>
+            {['No tumor detected', 'Tumor detected (high confidence)', 'Tumor detected (low confidence)', 'Segmentation unavailable', 'Analysis failed / retry required'].map((outcome) => (
+              <Grid item xs={12} sm={6} md={4} key={outcome}>
+                <Chip label={outcome} variant="outlined" color="primary" sx={{ width: '100%', justifyContent: 'flex-start' }} />
+              </Grid>
+            ))}
+          </Grid>
+        </CardContent>
+      </Card>
 
       {/* Usage Instructions */}
       <Card>
