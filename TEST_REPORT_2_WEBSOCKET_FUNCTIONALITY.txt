@@ -1,0 +1,41 @@
+test_01_websocket_manager_initialization (__main__.TestWebSocketFunctionality.test_01_websocket_manager_initialization)
+Test 2.1: Verify WebSocket manager initializes correctly ... WARNING:root:PyTorch not available, using mock models
+WARNING:services.model_service:Could not import Phase 1 models: No module named 'torch'
+WARNING:services.model_service:Using mock models for development
+ok
+test_02_connection_manager_methods (__main__.TestWebSocketFunctionality.test_02_connection_manager_methods)
+Test 2.2: Verify connection manager has required methods ... ok
+test_03_message_handlers (__main__.TestWebSocketFunctionality.test_03_message_handlers)
+Test 2.3: Verify message handlers are defined ... ok
+test_04_websocket_integration_with_model_service (__main__.TestWebSocketFunctionality.test_04_websocket_integration_with_model_service)
+Test 2.4: Verify model_service can import and use websocket_manager ... ok
+test_05_connection_stats (__main__.TestWebSocketFunctionality.test_05_connection_stats)
+Test 2.5: Verify connection statistics functionality ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 6.662s
+
+OK
+✅ WebSocket manager initializes correctly
+✅ All 10 required methods present
+✅ Message handler functions defined
+✅ Model service successfully integrates with WebSocket manager
+✅ Connection statistics functionality working
+
+================================================================================
+TEST REPORT 2: WebSocket Connection & Functionality Test
+================================================================================
+
+Tests Run: 5
+Successes: 5
+Failures: 0
+Errors: 0
+
+✅ ALL WEBSOCKET TESTS PASSED!
+
+Key Findings:
+  ✅ WebSocket manager properly initialized
+  ✅ All required methods present and callable
+  ✅ Message handlers defined and functional
+  ✅ Integration with model service successful
+  ✅ Connection statistics tracking working

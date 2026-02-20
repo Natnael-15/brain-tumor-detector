@@ -151,7 +151,7 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
       try {
         setModelsLoading(true);
         setModelsError(null);
-        const response = await fetch(`${API_BASE_URL}/api/v1/models`);
+        const response = await fetch('http://localhost:8000/api/v1/models');
         if (!response.ok) {
           throw new Error(`Failed to load models (${response.status})`);
         }
