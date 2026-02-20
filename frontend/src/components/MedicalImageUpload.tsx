@@ -127,7 +127,7 @@ const AVAILABLE_MODELS: ModelInfo[] = [
   }
 ];
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://localhost:8000');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 const POLL_INTERVAL_MS = 1500;
 const MAX_POLL_ATTEMPTS = 120;
 
@@ -151,7 +151,7 @@ export const MedicalImageUpload: React.FC<MedicalImageUploadProps> = ({
       try {
         setModelsLoading(true);
         setModelsError(null);
-        const response = await fetch(`${API_BASE_URL}/api/v1/models`);
+        const response = await fetch('http://localhost:8000/api/v1/models');
         if (!response.ok) {
           throw new Error(`Failed to load models (${response.status})`);
         }

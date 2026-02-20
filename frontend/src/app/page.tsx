@@ -135,6 +135,7 @@ export default function HomePage() {
         setIsConnected(connected);
 
         if (!connected) {
+          websocket.disconnect();
           setWebsocketUnavailable(true);
           return;
         }
@@ -253,6 +254,12 @@ export default function HomePage() {
       )}
 
       {websocketUnavailable && !isConnected && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Real-time WebSocket updates are unavailable in this environment. The app will continue using API polling for analysis progress and results.
+        </Alert>
+      )}
+
+      {websocketUnavailable && (
         <Alert severity="info" sx={{ mb: 3 }}>
           Real-time WebSocket updates are unavailable in this environment. The app will continue using API polling for analysis progress and results.
         </Alert>

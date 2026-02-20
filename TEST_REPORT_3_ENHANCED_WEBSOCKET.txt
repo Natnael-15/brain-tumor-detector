@@ -1,0 +1,60 @@
+test_01_exponential_backoff_calculation (__main__.TestEnhancedWebSocketFeatures.test_01_exponential_backoff_calculation)
+Test 3.1: Verify exponential backoff delay calculation ... ok
+test_02_multi_url_fallback_configuration (__main__.TestEnhancedWebSocketFeatures.test_02_multi_url_fallback_configuration)
+Test 3.2: Verify multi-URL fallback strategy ... ok
+test_03_reconnection_limits (__main__.TestEnhancedWebSocketFeatures.test_03_reconnection_limits)
+Test 3.3: Verify reconnection attempt limits ... ok
+test_04_heartbeat_timing (__main__.TestEnhancedWebSocketFeatures.test_04_heartbeat_timing)
+Test 3.4: Verify heartbeat interval timing ... ok
+test_05_connection_timeout (__main__.TestEnhancedWebSocketFeatures.test_05_connection_timeout)
+Test 3.5: Verify connection timeout configuration ... ok
+test_06_websocket_message_format (__main__.TestEnhancedWebSocketFeatures.test_06_websocket_message_format)
+Test 3.6: Verify WebSocket message format ... ok
+test_07_url_cycling_logic (__main__.TestEnhancedWebSocketFeatures.test_07_url_cycling_logic)
+Test 3.7: Verify URL cycling logic ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.001s
+
+OK
+✅ Exponential backoff calculation correct
+   Delays: 1000ms → 2000ms → 4000ms → 8000ms → 10000ms
+✅ Multi-URL fallback strategy configured correctly
+   Primary: ws://localhost:8000
+   Fallback 1: ws://127.0.0.1:8000
+   Fallback 2: ws://0.0.0.0:8000
+✅ Reconnection limits properly configured
+   Max attempts: 15
+   Max delay: 10000ms (10.0s)
+   Heartbeat: 25000ms (25.0s)
+✅ Heartbeat timing validated
+   Interval: 25s
+   Heartbeats/minute: 2.4
+   Heartbeats/hour: 144
+✅ Connection timeout properly configured
+   Timeout: 5000ms (5.0s)
+✅ WebSocket message format valid
+   Ping message structure: ✓
+   Health check message structure: ✓
+✅ URL cycling logic correct
+   Cycles through all URLs then repeats
+
+================================================================================
+TEST REPORT 3: Enhanced WebSocket Features Test
+================================================================================
+
+Tests Run: 7
+Successes: 7
+Failures: 0
+Errors: 0
+
+✅ ALL ENHANCED FEATURES TESTS PASSED!
+
+Key Findings:
+  ✅ Exponential backoff delays calculated correctly (1s → 10s cap)
+  ✅ Multi-URL fallback strategy properly configured (3 URLs)
+  ✅ Reconnection limits set appropriately (15 attempts max)
+  ✅ Heartbeat timing optimized (25s interval)
+  ✅ Connection timeout configured (5s)
+  ✅ Message format validation successful
+  ✅ URL cycling logic working correctly

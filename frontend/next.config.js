@@ -25,14 +25,17 @@ const nextConfig = {
 
     return config;
   },
-  // API configuration
+  // API configuration - proxy to local backend in development only
   async rewrites() {
-    return [
-      {
-        source: '/api/v1/:path*',
-        destination: 'http://localhost:8000/api/v1/:path*',
-      },
-    ];
+    if (process.env.NODE_ENV === 'development') {
+      return [
+        {
+          source: '/api/v1/:path*',
+          destination: 'http://localhost:8000/api/v1/:path*',
+        },
+      ];
+    }
+    return [];
   },
   // Enable CORS for development
   async headers() {
