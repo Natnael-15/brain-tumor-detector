@@ -1,0 +1,51 @@
+WARNING:root:PyTorch not available, using mock models
+WARNING:services.model_service:Could not import Phase 1 models: No module named 'torch'
+WARNING:services.model_service:Using mock models for development
+================================================================================
+TEST REPORT 5: Performance Test (Level 6 - Comprehensive)
+================================================================================
+
+Test 5.1: Module Import Performance
+--------------------------------------------------------------------------------
+  Model Service Import: 93.54ms
+  ✅ EXCELLENT - Very fast import
+
+Test 5.2: Prediction Execution Performance
+--------------------------------------------------------------------------------
+  Prediction Execution: 5844.99ms
+  ✅ GOOD - Acceptable speed
+
+Test 5.3: WebSocket Manager Performance
+--------------------------------------------------------------------------------
+  Average Stats Call: 0.85μs (1000 iterations)
+  ✅ EXCELLENT - Negligible overhead
+
+Test 5.4: Exponential Backoff Efficiency
+--------------------------------------------------------------------------------
+  Average Calculation: 262.82ns (10000 iterations)
+  ✅ GOOD - Fast calculation
+
+================================================================================
+📊 PERFORMANCE SUMMARY
+================================================================================
+
+🚀 Module Import Performance:
+  Model Service: 93.54ms
+
+⚡ Prediction Performance:
+  Execution Time: 5844.99ms
+
+🔌 WebSocket Overhead:
+  Stats Call: 0.85μs
+
+🔄 Backoff Calculation:
+  Calculation Time: 262.82ns
+
+✅ ALL PERFORMANCE TESTS PASSED!
+🏆 PERFORMANCE RATING: LEVEL 6 - EXCELLENT
+
+Key Performance Indicators:
+  ✅ Module imports optimized (< 500ms)
+  ✅ Prediction latency acceptable
+  ✅ WebSocket overhead negligible
+  ✅ Backoff calculations highly efficient
