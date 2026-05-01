@@ -1,132 +1,75 @@
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-html,
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
-    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-/* Medical imaging specific styles */
-.medical-viewer {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: #000;
-  border-radius: 8px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #020817;
+  color: #e2e8f0;
+  height: 100vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.medical-viewer canvas {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-}
+/* ── Scrollbars ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-/* File upload styles */
-.upload-zone {
-  border: 2px dashed #ccc;
-  border-radius: 8px;
-  padding: 2rem;
-  text-align: center;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
+/* ── Glow utilities ── */
+.glow-cyan  { box-shadow: 0 0 20px rgba(34,211,238,.25); }
+.glow-green { box-shadow: 0 0 20px rgba(74,222,128,.25); }
+.glow-red   { box-shadow: 0 0 20px rgba(248,113,113,.25); }
 
-.upload-zone:hover {
-  border-color: #2196F3;
-  background-color: rgba(33, 150, 243, 0.05);
-}
-
-.upload-zone.dragover {
-  border-color: #2196F3;
-  background-color: rgba(33, 150, 243, 0.1);
-}
-
-/* Progress animations */
+/* ── Pulse animation ── */
 @keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
-  }
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .4; }
+}
+.pulse { animation: pulse 1.8s ease-in-out infinite; }
+
+/* ── Scan line ── */
+@keyframes scanLine {
+  0%   { transform: translateY(-100%); opacity: .6; }
+  100% { transform: translateY(100vh); opacity: 0; }
 }
 
-.pulse {
-  animation: pulse 2s infinite;
+/* ── Fade-in ── */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.fade-in { animation: fadeIn .35s ease forwards; }
+
+/* ── Slide-in from right ── */
+@keyframes slideInRight { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+.slide-in-right { animation: slideInRight .35s ease forwards; }
+
+/* ── Typing cursor ── */
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+.cursor::after { content: '|'; animation: blink 1s step-start infinite; margin-left: 2px; color: #22d3ee; }
+
+/* ── Drop-zone highlight ── */
+.dropzone-active {
+  border-color: #22d3ee !important;
+  background: rgba(34,211,238,.08) !important;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .medical-viewer {
-    height: 300px;
-  }
-}
+/* ── Utility ── */
+.truncate { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}
+input[type=range] { cursor: pointer; }
+button { font-family: inherit; cursor: pointer; }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
+/* ── Progress bar stripes ── */
+@keyframes stripes {
+  from { background-position: 0 0; }
+  to   { background-position: 40px 0; }
 }
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* Loading spinner */
-.spinner {
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #2196F3;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.progress-stripe {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(255,255,255,.08) 10px,
+    rgba(255,255,255,.08) 20px
+  );
+  animation: stripes .8s linear infinite;
 }
