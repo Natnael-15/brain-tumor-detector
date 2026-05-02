@@ -180,14 +180,14 @@ class ModelService:
         model_data = self.models[model_id]
         predictor = model_data["predictor"]
         
-        try:
+        try {
             logger.info(f"Running prediction with {model_id} for analysis {analysis_id}")
-            
-            # Send initial progress
+
+            # Use the manager to send a more accurate progress update
             try:
                 from .websocket_manager import manager as websocket_manager
                 if websocket_manager:
-                    await websocket_manager.send_analysis_update(analysis_id, "processing", 10, {"message": "Preprocessing MRI scan..."})
+                    await websocket_manager.send_analysis_update(analysis_id, "analyzing", 50, {"message": f"AI model {model_id} executing..."})
             except ImportError:
                 websocket_manager = None
 

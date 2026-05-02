@@ -1036,25 +1036,32 @@ export default function HomePage() {
     }
 
     const unsubscribe = websocket.onAnalysisUpdate((data: any) => {
-      if (data.type === 'analysis_progress' || (data.type === 'analysis_update' && data.status === 'processing')) {
+      if (data.type === 'analysis_update' || data.type === 'analysis_progress') {
         const p = data.progress || 0;
+        const stage = data.stage || data.status;
+        
         setProgress(p);
-        setFiles(prev => prev.map(f => ({ ...f, progress: p, status: 'analyzing' })));
-        setPhase('analyzing');
-      } else if (data.type === 'analysis_complete' || (data.type === 'analysis_update' && data.status === 'completed')) {
-        setResult(data.results || MOCK_RESULT);
-        setPhase('complete');
-        setProgress(100);
-        setFiles(prev => prev.map(f => ({ ...f, status: 'complete', progress: 100 })));
-        setResultLoading(false);
-        setStats(s => ({ ...s, total: s.total + 1, complete: s.complete + 1 }));
-        addLog('Analysis complete', 'success');
-        toast.success('Analysis complete!');
-      } else if (data.type === 'analysis_error' || (data.type === 'analysis_update' && data.status === 'failed')) {
-        setPhase('idle');
-        addLog(`Analysis failed: ${data.message || data.error}`, 'error');
-        toast.error(`Analysis failed: ${data.message || data.error}`);
-        setFiles(prev => prev.map(f => ({ ...f, status: 'error' })));
+        
+        if (stage === 'completed') {
+          setResult(data.results);
+          setPhase('complete');
+          setProgress(100);
+          setFiles(prev => prev.map(f => ({ ...f, status: 'complete', progress: 100 })));
+          setResultLoading(false);
+          setStats(s => ({ ...s, total: s.total + 1, complete: s.complete + 1 }));
+          addLog('Analysis complete', 'success');
+          toast.success('Analysis complete!');
+        } else if (stage === 'failed') {
+          setPhase('idle');
+          addLog(`Analysis failed: ${data.message || data.error}`, 'error');
+          toast.error(`Analysis failed: ${data.message || data.error}`);
+          setFiles(prev => prev.map(f => ({ ...f, status: 'error' })));
+        } else {
+          // Progress update
+          setPhase('analyzing');
+          setFiles(prev => prev.map(f => ({ ...f, progress: p, status: 'analyzing' })));
+          if (data.message) addLog(data.message, 'info');
+        }
       }
     });
 
