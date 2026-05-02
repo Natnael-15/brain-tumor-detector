@@ -47,9 +47,7 @@ app.add_middleware(
         "http://localhost:3001",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:3001",
-        "ws://localhost:8000",
-        "ws://127.0.0.1:8000",
-        "ws://0.0.0.0:8000"
+        "https://brain-tumor-detector-five.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -57,7 +55,7 @@ app.add_middleware(
 )
 
 # Security
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 # Create upload directory
 UPLOAD_DIR = Path("uploads")
@@ -88,11 +86,13 @@ async def startup_event():
     logger.info("API startup completed successfully - Ready for Phase 3 with Real-time Updates!")
 
 # Authentication dependency
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Mock authentication"""
-    if credentials.credentials == "mock-token":
+async def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)):
+    """Mock authentication - Made optional for easier local development"""
+    if credentials and credentials.credentials == "mock-token":
         return {"id": "1", "email": "demo@example.com", "name": "Demo User"}
-    raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    
+    # Default user for development when no token provided
+    return {"id": "dev_user", "email": "dev@example.com", "name": "Developer"}
 
 @app.get("/api/v1/health")
 async def health_check():

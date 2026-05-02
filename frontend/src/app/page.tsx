@@ -1024,6 +1024,9 @@ const MOCK_RESULT = {
 export default function HomePage() {
   const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const websocket = useEnhancedWebSocket();
+  const [isMounted, setIsMounted] = useState(false);
+  const [currentTime, setCurrentTime] = useState('');
+  const userIdRef = useRef<string | null>(null);
 
   const [activeNav, setActiveNav] = useState('scan');
   const [files, setFiles] = useState<any[]>([]);
@@ -1040,8 +1043,15 @@ export default function HomePage() {
   ]);
 
   useEffect(() => {
-    const userId = `user_${Math.random().toString(36).substr(2, 9)}`;
-    websocket.connect(userId);
+    setIsMounted(true);
+    const timer = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString('en-US', { hour12: false }));
+    }, 1000);
+    
+    if (!userIdRef.current) {
+      userIdRef.current = `user_${Math.random().toString(36).substr(2, 9)}`;
+      websocket.connect(userIdRef.current);
+    }
 
     const unsubscribe = websocket.onAnalysisUpdate((data: any) => {
       if (data.type === 'analysis_progress' || (data.type === 'analysis_update' && data.status === 'processing')) {
@@ -1067,8 +1077,10 @@ export default function HomePage() {
     });
 
     return () => {
+      clearInterval(timer);
       unsubscribe();
-      websocket.disconnect();
+      // Only disconnect if it's a real cleanup, not a dev re-render
+      // In a real app, you might want to keep the singleton connection alive
     };
   }, [websocket]);
 
@@ -1095,7 +1107,6 @@ export default function HomePage() {
   const handleAnalyze = async () => {
     if (files.length === 0) { 
       if (tweaks.demoMode) {
-        // Run demo simulation
         runDemoSimulation();
       } else {
         addLog('No files selected', 'warn'); 
@@ -1110,10 +1121,11 @@ export default function HomePage() {
     addLog('Uploading files…', 'info');
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+      const defaultHost = 'localhost:8000';
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || `http://${defaultHost}`;
+      
       const formData = new FormData();
-      // For now we just upload the first file to the analysis endpoint
-      formData.append('file', files[0].file);
+      formData.append('files', files[0].file); 
       formData.append('model', selectedModel);
 
       const response = await fetch(`${API_BASE_URL}/api/v1/analysis/upload`, {
@@ -1121,13 +1133,17 @@ export default function HomePage() {
         body: formData,
       });
 
-      if (!response.ok) throw new Error('Upload failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Upload failed' }));
+        throw new Error(errorData.detail || 'Upload failed');
+      }
       
       setPhase('analyzing');
       addLog(`Running ${MODELS.find(m => m.id === selectedModel)?.name}…`, 'info');
     } catch (err: any) {
       addLog(`Upload error: ${err.message}`, 'error');
       setPhase('idle');
+      toast.error(`Upload error: ${err.message}`);
     }
   };
 
@@ -1162,6 +1178,8 @@ export default function HomePage() {
   };
 
   const logColors: any = { info: 'var(--text-muted)', success: 'var(--accent-teal)', warn: 'var(--accent-amber)', error: 'var(--accent-red)' };
+
+  if (!isMounted) return <div style={{ background: 'var(--bg-base)', height: '100vh' }} />;
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-base)' }}>
@@ -1199,7 +1217,7 @@ export default function HomePage() {
             <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent-teal)' }}>System Online</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {[['Models', '6 / 6'], ['WebSocket', 'Connected'], ['GPU', 'Available']].map(([k, v]) => (
+            {[['Models', '4 / 4'], ['WebSocket', 'Connected'], ['GPU', 'Available']].map(([k, v]) => (
               <div key={k} style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{k}</span>
                 <span style={{ fontSize: 10, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>{v}</span>
@@ -1226,7 +1244,7 @@ export default function HomePage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-              {new Date().toLocaleTimeString('en-US', { hour12: false })}
+              {currentTime}
             </div>
             <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--accent-blue-dim)', border: '1px solid var(--accent-blue-mid)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-blue)' }}>N</span>

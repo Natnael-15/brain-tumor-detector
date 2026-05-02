@@ -35,13 +35,27 @@ class EnhancedWebSocketClient {
   private ws: WebSocket | null = null;
   
   // Connection URLs with fallback strategy (configurable via environment or defaults)
-  private primaryUrl = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_WS_URL 
-    ? process.env.NEXT_PUBLIC_WS_URL 
-    : 'ws://localhost:8000';
+  private primaryUrl = this.getDefaultWsUrl();
   private fallbackUrls = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_WS_FALLBACK_URLS
     ? process.env.NEXT_PUBLIC_WS_FALLBACK_URLS.split(',')
-    : ['ws://127.0.0.1:8000', 'ws://0.0.0.0:8000'];
+    : [this.getDefaultWsUrl('127.0.0.1:8000'), this.getDefaultWsUrl('0.0.0.0:8000')];
   private currentUrlIndex = -1; // Start at -1 so first call gets primary URL
+
+  private getDefaultWsUrl(hostPort = 'localhost:8000'): string {
+    if (typeof window === 'undefined') return `ws://${hostPort}`;
+    
+    // If we have an explicit env var, use it
+    if (process.env.NEXT_PUBLIC_WS_URL) return process.env.NEXT_PUBLIC_WS_URL;
+    
+    // Check if the hostPort itself is a local address
+    const isLocalHost = hostPort.includes('localhost') || hostPort.includes('127.0.0.1') || hostPort.includes('0.0.0.0');
+    
+    // If we are connecting to a local server, we usually want ws: (insecure)
+    // even if the page is https:, because localhost doesn't have valid SSL.
+    const protocol = isLocalHost ? 'ws:' : (window.location.protocol === 'https:' ? 'wss:' : 'ws:');
+    
+    return `${protocol}//${hostPort}`;
+  }
   
   // Reconnection settings
   private reconnectAttempts = 0;
