@@ -595,7 +595,6 @@ export default function HomePage() {
   const [result, setResult] = useState<any>(null);
   const [settings, setSettings] = useState(defaultTweaksSettings);
   const [isConnected, setIsConnected] = useState(false);
-  const [analysisId, setAnalysisId] = useState<string | null>(null);
 
   useEffect(() => {
     const userId = `user_${Math.random().toString(36).substr(2, 9)}`;
@@ -659,8 +658,6 @@ export default function HomePage() {
       });
 
       if (!response.ok) throw new Error('Upload failed');
-      const data = await response.json();
-      setAnalysisId(data.analysis_id);
     } catch (err: any) {
       toast.error(`Error: ${err.message}`);
       setAnalyzing(false);
