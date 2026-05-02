@@ -47,16 +47,15 @@ def download_models():
     except Exception as e:
         logger.error(f"Failed to initialize segmentation model: {e}")
 
-    # 3. Detection: YOLOv8 (Ultralytics)
+    # 3. Detection & Segmentation: YOLOv8 (Ultralytics)
     try:
         from ultralytics import YOLO
-        logger.info("Pulling Detection Model: YOLOv8 Brain Tumor")
+        logger.info("Pulling Segmentation Model: YOLOv8-seg")
         # This will download the weights automatically
-        # Note: alanjafari/BrainTumorAI is a known public model
-        model = YOLO("yolov8n.pt") # Just a base model for now, can be replaced with fine-tuned
-        logger.info("✅ Detection model ready (YOLOv8)")
+        model = YOLO("yolov8n-seg.pt") 
+        logger.info("✅ Segmentation model ready (YOLOv8-seg)")
     except Exception as e:
-        logger.error(f"Failed to pull detection model: {e}")
+        logger.error(f"Failed to pull segmentation model: {e}")
 
     logger.info("--- Model Pulling Complete ---")
 

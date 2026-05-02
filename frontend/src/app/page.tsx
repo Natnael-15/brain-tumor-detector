@@ -998,28 +998,10 @@ const TWEAK_DEFAULTS = {
   accentHue: 240,
   showWaveform: true,
   animationSpeed: 0.8,
-  demoMode: true
+  demoMode: false
 };
 
-const MOCK_RESULT = {
-  analysis_id: 'ana_demo_001',
-  model_used: 'ensemble',
-  predictions: {
-    tumor_detected: true,
-    tumor_type: 'Glioblastoma',
-    confidence: 0.87,
-    tumor_volume_ml: 12.5,
-    location: 'Right frontal lobe',
-  },
-  metrics: { dice_score: 0.92, hausdorff_distance: 2.1, processing_time: 4.2 },
-  clinical_notes: [
-    'Enhancing lesion in right frontal lobe',
-    'Irregular borders — high-grade glioma pattern',
-    'Correlate with clinical symptoms',
-    'Follow-up imaging recommended in 3 months',
-  ],
-  completed_at: new Date().toISOString(),
-};
+const MOCK_RESULT = null;
 
 export default function HomePage() {
   const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -1278,8 +1260,8 @@ export default function HomePage() {
                     <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Pipeline</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 16 }}>
                       {['Upload', 'Preprocess', 'Inference', 'Review'].map((step, i) => {
-                        const done = (i === 0 && progress > 33) || (i === 1 && progress > 66) || (i === 2 && progress > 95) || (i === 3 && phase === 'complete');
-                        const active = !done && ((i === 0 && phase === 'uploading') || (i === 1 && phase === 'analyzing' && progress < 60) || (i === 2 && phase === 'analyzing' && progress >= 60) || (i === 3 && phase === 'complete'));
+                        const done = (i === 0 && progress >= 10) || (i === 1 && progress >= 40) || (i === 2 && progress >= 95) || (i === 3 && phase === 'complete');
+                        const active = !done && ((i === 0 && phase === 'uploading') || (i === 1 && progress < 40 && phase === 'analyzing') || (i === 2 && progress < 95 && phase === 'analyzing') || (i === 3 && phase === 'complete'));
                         return (
                           <React.Fragment key={step}>
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: 1 }}>

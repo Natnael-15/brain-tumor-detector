@@ -71,10 +71,16 @@ models/*.pth
 *.pt
 *.pth
 
+# Datasets and Large Files
+test_dataset/
+brain-tumor-mri-dataset.zip
+*.zip
+*.pt
+*.safetensors
+*.bin
+
 # Temporary files
 *.tmp
-*.temp
-.cache/
 
 # Coverage reports
 htmlcov/
