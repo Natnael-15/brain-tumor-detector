@@ -471,12 +471,10 @@ const ProgressRing = ({ value, size = 36, color = 'var(--accent-blue)' }: any) =
 
 // ─── Model Selector ───────────────────────────────────────────────────────────
 const MODELS = [
-  { id: 'ensemble', name: 'Advanced Ensemble', tag: 'Best accuracy', time: '3–5 min', type: 'ensemble' },
-  { id: 'nnunet', name: 'nnU-Net Segmentation', tag: 'Segmentation', time: '2–3 min', type: 'seg' },
-  { id: 'medical_vit', name: 'Medical ViT', tag: 'Transformer', time: '1–2 min', type: 'cls' },
-  { id: 'unet3d', name: '3D U-Net', tag: 'Volumetric', time: '2 min', type: 'seg' },
-  { id: 'resnet3d', name: '3D ResNet', tag: 'Fast', time: '30 sec', type: 'cls' },
-  { id: 'multimodal', name: 'Multi-Modal CNN', tag: 'Multi-sequence', time: '3–4 min', type: 'mm' },
+  { id: 'ensemble', name: 'Advanced Ensemble', tag: 'Best accuracy', time: '15–30 sec', type: 'ensemble' },
+  { id: 'medical_vit', name: 'Medical ViT', tag: 'Transformer', time: '2–5 sec', type: 'cls' },
+  { id: 'nnunet', name: 'nnU-Net Segmentation', tag: 'Segmentation', time: '10–20 sec', type: 'seg' },
+  { id: 'yolov8', name: 'YOLOv8 Detector', tag: 'Real-time', time: '1–2 sec', type: 'det' },
 ];
 
 const ModelSelector = ({ selected, onChange }: any) => {
