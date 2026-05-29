@@ -83,7 +83,7 @@ class TestWebSocketFunctionality(unittest.TestCase):
             
             result = asyncio.run(test_predict())
             self.assertIsNotNone(result)
-            self.assertIn('prediction', result)
+            self.assertIn('predictions', result)
             print("✅ Model service successfully integrates with WebSocket manager")
         except Exception as e:
             print(f"❌ Integration test failed: {e}")

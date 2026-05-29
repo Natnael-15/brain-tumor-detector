@@ -23,7 +23,7 @@ class TestCodeQuality(unittest.TestCase):
         """Test 4.1: Verify no circular import patterns in code"""
         model_service_file = backend_path / "services" / "model_service.py"
         
-        with open(model_service_file, 'r') as f:
+        with open(model_service_file, 'r', encoding="utf-8") as f:
             content = f.read()
         
         # Check that model_service does NOT import from main
@@ -39,7 +39,7 @@ class TestCodeQuality(unittest.TestCase):
         """Test 4.2: Verify proper error handling for websocket import"""
         model_service_file = backend_path / "services" / "model_service.py"
         
-        with open(model_service_file, 'r') as f:
+        with open(model_service_file, 'r', encoding="utf-8") as f:
             content = f.read()
         
         # Check for try/except wrapper
@@ -53,7 +53,7 @@ class TestCodeQuality(unittest.TestCase):
         enhanced_ws_file = frontend_path / "src" / "lib" / "enhanced-websocket.ts"
         
         if enhanced_ws_file.exists():
-            with open(enhanced_ws_file, 'r') as f:
+            with open(enhanced_ws_file, 'r', encoding="utf-8") as f:
                 content = f.read()
             
             # Check that deprecated substr() is not used
@@ -71,7 +71,7 @@ class TestCodeQuality(unittest.TestCase):
         enhanced_ws_file = frontend_path / "src" / "lib" / "enhanced-websocket.ts"
         
         if enhanced_ws_file.exists():
-            with open(enhanced_ws_file, 'r') as f:
+            with open(enhanced_ws_file, 'r', encoding="utf-8") as f:
                 content = f.read()
             
             # Check for environment variable usage
@@ -86,7 +86,7 @@ class TestCodeQuality(unittest.TestCase):
         enhanced_ws_file = frontend_path / "src" / "lib" / "enhanced-websocket.ts"
         
         if enhanced_ws_file.exists():
-            with open(enhanced_ws_file, 'r') as f:
+            with open(enhanced_ws_file, 'r', encoding="utf-8") as f:
                 content = f.read()
             
             # Check for named constants
@@ -103,7 +103,7 @@ class TestCodeQuality(unittest.TestCase):
         enhanced_ws_file = frontend_path / "src" / "lib" / "enhanced-websocket.ts"
         
         if enhanced_ws_file.exists():
-            with open(enhanced_ws_file, 'r') as f:
+            with open(enhanced_ws_file, 'r', encoding="utf-8") as f:
                 content = f.read()
             
             # Check that forceUpdate anti-pattern is not used
@@ -122,7 +122,7 @@ class TestCodeQuality(unittest.TestCase):
         enhanced_ws_file = frontend_path / "src" / "lib" / "enhanced-websocket.ts"
         
         if enhanced_ws_file.exists():
-            with open(enhanced_ws_file, 'r') as f:
+            with open(enhanced_ws_file, 'r', encoding="utf-8") as f:
                 content = f.read()
             
             # Check for cleanup methods
@@ -153,7 +153,7 @@ class TestCodeQuality(unittest.TestCase):
         
         for file_path in files_to_check:
             if file_path.exists():
-                with open(file_path, 'r') as f:
+                with open(file_path, 'r', encoding="utf-8") as f:
                     content = f.read()
                 
                 for pattern in sensitive_patterns:
@@ -166,7 +166,7 @@ class TestCodeQuality(unittest.TestCase):
         """Test 4.9: Verify proper logging implementation"""
         model_service_file = backend_path / "services" / "model_service.py"
         
-        with open(model_service_file, 'r') as f:
+        with open(model_service_file, 'r', encoding="utf-8") as f:
             content = f.read()
         
         # Check for logger usage
@@ -180,7 +180,7 @@ class TestCodeQuality(unittest.TestCase):
         enhanced_ws_file = frontend_path / "src" / "lib" / "enhanced-websocket.ts"
         
         if enhanced_ws_file.exists():
-            with open(enhanced_ws_file, 'r') as f:
+            with open(enhanced_ws_file, 'r', encoding="utf-8") as f:
                 content = f.read()
             
             # Check for TypeScript type annotations

@@ -70,6 +70,8 @@ models/*.pth
 *.pkl
 *.pt
 *.pth
+*.onnx
+*.onnx.data
 
 # Datasets and Large Files
 test_dataset/
