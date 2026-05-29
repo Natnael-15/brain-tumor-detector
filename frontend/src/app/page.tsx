@@ -552,22 +552,25 @@ const ResultsPanel = ({ result, loading }: any) => {
   );
 
   const { predictions: p, metrics: m, clinical_notes: notes, model_used } = result;
+  const tumorDetectedColor = 'var(--accent-blue)';
+  const bgWarningDim = 'var(--accent-blue-dim)';
+  const borderWarning = 'var(--accent-blue-mid)';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, animation: 'fadeIn 0.4s ease' }}>
       <div style={{
-        padding: '14px 16px', borderRadius: 'var(--radius-md)',
-        background: p.tumor_detected ? 'var(--accent-red-dim)' : 'oklch(65% 0.22 145 / 0.1)',
-        border: `1px solid ${p.tumor_detected ? 'oklch(60% 0.22 25 / 0.35)' : 'oklch(65% 0.22 145 / 0.3)'}`,
-        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '16px 18px', borderRadius: 'var(--radius-md)',
+        background: p.tumor_detected ? bgWarningDim : 'oklch(65% 0.22 145 / 0.05)',
+        border: `1px solid ${p.tumor_detected ? borderWarning : 'oklch(65% 0.22 145 / 0.2)'}`,
+        display: 'flex', alignItems: 'center', gap: 14,
       }}>
-        <div style={{ width: 34, height: 34, borderRadius: 8, background: p.tumor_detected ? 'oklch(60% 0.22 25 / 0.2)' : 'oklch(65% 0.22 145 / 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <Icon d={p.tumor_detected ? Icons.warning : Icons.check} size={18} color={p.tumor_detected ? 'var(--accent-red)' : 'oklch(65% 0.22 145)'} />
+        <div style={{ width: 40, height: 40, borderRadius: 8, background: p.tumor_detected ? borderWarning : 'oklch(65% 0.22 145 / 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Icon d={p.tumor_detected ? Icons.warning : Icons.check} size={20} color={p.tumor_detected ? tumorDetectedColor : 'oklch(65% 0.22 145)'} />
         </div>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: p.tumor_detected ? 'var(--accent-red)' : 'oklch(65% 0.22 145)' }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: p.tumor_detected ? tumorDetectedColor : 'oklch(65% 0.22 145)' }}>
             {p.tumor_detected ? `${p.tumor_type} detected` : 'No tumor detected'}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, fontFamily: 'var(--font-mono)' }}>
             via {model_used} · {p.location}
           </div>
         </div>
@@ -575,9 +578,9 @@ const ResultsPanel = ({ result, loading }: any) => {
 
       {p.tumor_detected && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <ProgressBar value={p.confidence * 100} color="var(--accent-red)" height={6} label="Confidence" showValue />
+          <ProgressBar value={p.confidence * 100} color={tumorDetectedColor} height={6} label="Confidence" showValue />
           <div style={{ display: 'flex', gap: 16 }}>
-            <Metric label="Volume" value={p.tumor_volume_ml} unit="mL" color="var(--accent-red)" />
+            <Metric label="Volume" value={p.tumor_volume_ml} unit="mL" color={tumorDetectedColor} />
             <Metric label="Location" value={p.location.split(' ').slice(0, 2).join(' ')} color="var(--text-secondary)" />
           </div>
         </div>
@@ -654,16 +657,16 @@ const StatCard = ({ label, value, sub, color = 'var(--accent-blue)', icon }: any
 const NavItem = ({ icon, label, active, onClick, badge }: any) => (
   <button onClick={onClick} style={{
     display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-    padding: '9px 12px', borderRadius: 'var(--radius-md)',
+    padding: '10px 12px', borderRadius: 'var(--radius-md)',
     background: active ? 'var(--accent-blue-dim)' : 'none',
     border: `1px solid ${active ? 'var(--accent-blue-mid)' : 'transparent'}`,
-    cursor: 'pointer', fontFamily: 'var(--font-ui)', color: active ? 'var(--accent-blue)' : 'var(--text-muted)',
-    fontSize: 13, fontWeight: active ? 600 : 400, transition: 'all 0.15s',
+    cursor: 'pointer', fontFamily: 'var(--font-ui)', color: active ? 'var(--accent-blue)' : 'var(--text-secondary)',
+    fontSize: 14, fontWeight: active ? 600 : 500, transition: 'all 0.15s',
     textAlign: 'left',
   }}
-    onMouseEnter={(e: any) => { if (!active) { e.currentTarget.style.background = 'var(--bg-elevated)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}}
-    onMouseLeave={(e: any) => { if (!active) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text-muted)'; }}}>
-    <Icon d={icon} size={15} color="currentColor" />
+    onMouseEnter={(e: any) => { if (!active) { e.currentTarget.style.background = 'var(--bg-elevated)'; e.currentTarget.style.color = 'var(--accent-blue)'; }}}
+    onMouseLeave={(e: any) => { if (!active) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text-secondary)'; }}}>
+    <Icon d={icon} size={16} color="currentColor" strokeWidth={active ? 2 : 1.6} />
     <span style={{ flex: 1 }}>{label}</span>
     {badge && <Badge variant="blue">{badge}</Badge>}
   </button>

@@ -180,7 +180,7 @@ class ModelService:
         model_data = self.models[model_id]
         predictor = model_data["predictor"]
         
-        try {
+        try:
             logger.info(f"Running prediction with {model_id} for analysis {analysis_id}")
 
             # Use the manager to send a more accurate progress update

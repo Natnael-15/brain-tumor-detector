@@ -10,7 +10,7 @@ class DummyPredictor:
     def __init__(self):
         self.calls = []
 
-    def predict(self, file_path, analysis_id=None):
+    async def predict(self, file_path, analysis_id=None):
         self.calls.append((file_path, analysis_id))
         return {"ok": True}
 
