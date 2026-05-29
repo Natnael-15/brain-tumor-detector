@@ -13,7 +13,7 @@ from backend.services.model_service import model_service
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-async def test_inference():
+async def run_inference():
     logger.info("Initializing model service...")
     await model_service.initialize()
     
@@ -54,4 +54,4 @@ async def test_inference():
                 logger.error(f"  Error during inference with {model_id}: {e}")
 
 if __name__ == "__main__":
-    asyncio.run(test_inference())
+    asyncio.run(run_inference())

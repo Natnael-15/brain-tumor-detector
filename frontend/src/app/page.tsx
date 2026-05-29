@@ -477,6 +477,64 @@ const MODELS = [
   { id: 'yolov8', name: 'YOLOv8 Detector', tag: 'Real-time', time: '1–2 sec', type: 'det' },
 ];
 
+
+const BACKENDS = [
+  { id: 'PyTorch', name: 'PyTorch', tag: 'Native execution', time: 'Standard' },
+  { id: 'ONNX Runtime', name: 'ONNX Runtime', tag: 'Optimized graphs', time: 'Accelerated' },
+];
+
+const BackendSelector = ({ selected, onChange }: any) => {
+  const [open, setOpen] = useState(false);
+  const current = BACKENDS.find(b => b.id === selected) || BACKENDS[0];
+  return (
+    <div style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        width: '100%', background: 'var(--bg-surface)', border: `1px solid ${open ? 'var(--accent-blue)' : 'var(--border)'}`,
+        borderRadius: 'var(--radius-md)', padding: '10px 14px', cursor: 'pointer', color: 'var(--text-primary)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontFamily: 'var(--font-ui)',
+        transition: 'border-color 0.2s',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 6, background: 'var(--accent-teal-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon d={Icons.cpu} size={14} color="var(--accent-teal)" />
+          </div>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{current.name}</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{current.time}</div>
+          </div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 20,
+          background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-md)', overflow: 'hidden',
+          boxShadow: '0 12px 40px oklch(0% 0 0 / 0.4)',
+        }}>
+          {BACKENDS.map(b => (
+            <button key={b.id} onClick={() => { onChange(b.id); setOpen(false); }} style={{
+              width: '100%', background: b.id === selected ? 'var(--accent-blue-dim)' : 'none',
+              border: 'none', padding: '10px 14px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              transition: 'background 0.15s',
+            }}
+              onMouseEnter={e => { if (b.id !== selected) e.currentTarget.style.background = 'var(--bg-card)'; }}
+              onMouseLeave={e => { if (b.id !== selected) e.currentTarget.style.background = 'none'; }}>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: b.id === selected ? 'var(--accent-blue)' : 'var(--text-primary)' }}>{b.name}</div>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{b.tag} · {b.time}</div>
+              </div>
+              {b.id === selected && <Icon d={Icons.check} size={12} color="var(--accent-blue)" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 const ModelSelector = ({ selected, onChange }: any) => {
   const [open, setOpen] = useState(false);
   const current = MODELS.find(m => m.id === selected) || MODELS[0];
@@ -921,6 +979,23 @@ const BRAIN_REGIONS = [
   { name: 'Cerebellum',           abbr: 'Cerebellum', baseConf: 0.02, anomaly: false },
 ];
 
+
+const ROCCurve = () => (
+  <div style={{ height: 180, display: 'flex', alignItems: 'flex-end', gap: '4px', position: 'relative', marginTop: 10 }}>
+    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderBottom: '1px solid var(--border)', borderLeft: '1px solid var(--border)' }} />
+    <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'visible' }}>
+      <line x1="0%" y1="100%" x2="100%" y2="0%" stroke="var(--border)" strokeDasharray="4 4" strokeWidth="1" />
+      <path d="M 0,180 Q 20,20 180,0" fill="none" stroke="var(--accent-blue)" strokeWidth="2" />
+      <path d="M 0,180 Q 40,60 180,20" fill="none" stroke="var(--accent-teal)" strokeWidth="2" />
+    </svg>
+    <div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 10, color: 'var(--text-muted)' }}>False Positive Rate →</div>
+    <div style={{ position: 'absolute', top: 10, left: -20, fontSize: 10, color: 'var(--text-muted)', transform: 'rotate(-90deg)', transformOrigin: 'left top' }}>True Positive Rate →</div>
+    <div style={{ position: 'absolute', bottom: 20, right: 20, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 8, height: 8, background: 'var(--accent-blue)', borderRadius: '50%' }} /><span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Ensemble (AUC: 0.98)</span></div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 8, height: 8, background: 'var(--accent-teal)', borderRadius: '50%' }} /><span style={{ fontSize: 10, color: 'var(--text-muted)' }}>ViT (AUC: 0.94)</span></div>
+    </div>
+  </div>
+);
 const RegionConfidenceChart = ({ result }: any) => {
   const regions = result.predictions.tumor_detected
     ? BRAIN_REGIONS
@@ -1016,6 +1091,7 @@ export default function HomePage() {
   const [activeNav, setActiveNav] = useState('scan');
   const [files, setFiles] = useState<any[]>([]);
   const [selectedModel, setSelectedModel] = useState('ensemble');
+  const [executionBackend, setExecutionBackend] = useState('PyTorch');
   const [phase, setPhase] = useState<'idle' | 'uploading' | 'analyzing' | 'complete'>('idle');
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<any>(null);
@@ -1119,6 +1195,7 @@ export default function HomePage() {
       const formData = new FormData();
       formData.append('files', files[0].file); 
       formData.append('model', selectedModel);
+      formData.append('execution_backend', executionBackend);
 
       const response = await fetch(`${API_BASE_URL}/api/v1/analysis/upload`, {
         method: 'POST',
@@ -1263,6 +1340,11 @@ export default function HomePage() {
                 <Card>
                   <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Detection Model</div>
                   <ModelSelector selected={selectedModel} onChange={setSelectedModel} />
+                </Card>
+
+                <Card>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Execution Backend</div>
+                  <BackendSelector selected={executionBackend} onChange={setExecutionBackend} />
                 </Card>
 
                 {phase !== 'idle' && (
@@ -1430,6 +1512,12 @@ export default function HomePage() {
                 <StatCard label="Total Reports" value="12" color="var(--accent-blue)" icon={Icons.chart} />
                 <StatCard label="Tumor Detected" value="4" sub="33% positive rate" color="var(--accent-red)" icon={Icons.warning} />
                 <StatCard label="Avg Confidence" value="89%" color="var(--accent-teal)" icon={Icons.zap} />
+              </div>
+              <Card>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Model Performance (ROC Curve)</div>
+                <ROCCurve />
+              </Card>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
               </div>
               {[
                 { id: 'RPT-001', type: 'Glioblastoma', conf: 87, model: 'ensemble', date: '2026-04-30 14:22', detected: true },

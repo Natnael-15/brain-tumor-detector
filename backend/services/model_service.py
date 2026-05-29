@@ -243,20 +243,8 @@ class ModelService:
             }
             
         # Fallback to mock models if anything failed to load
-        await self._load_mock_models()
         
         logger.info(f"Initialized {len(self.models)} models")
-    
-    async def _load_mock_models(self):
-        """Load mock models for development"""
-        for model_id, config in self.model_configs.items():
-            if model_id not in self.models:
-                self.models[model_id] = {
-                    "predictor": MockPredictor(model_id, config),
-                    "config": config,
-                    "loaded": True,
-                    "type": "mock"
-                }
     
     async def get_available_models(self) -> List[Dict]:
         """Get list of available models"""
@@ -277,7 +265,7 @@ class ModelService:
             for model_id, model_data in self.models.items()
         ]
     
-    async def predict(self, model_id: str, file_path: str, analysis_id: str) -> Dict[str, Any]:
+    async def predict(self, model_id: str, file_path: str, analysis_id: str, execution_backend: str = 'PyTorch') -> Dict[str, Any]:
         """Run prediction using specified model"""
         if not self._initialized:
             await self.initialize()
@@ -299,7 +287,7 @@ class ModelService:
             except ImportError:
                 websocket_manager = None
 
-            result = await predictor.predict(file_path, analysis_id)
+            result = await predictor.predict(file_path, analysis_id, execution_backend)
 
             # Add model metadata to result
             result.update({
@@ -329,7 +317,7 @@ class ViTPredictor:
         self.device = device
         self.onnx_session = onnx_session
         
-    async def predict(self, file_path: str, analysis_id: str) -> Dict[str, Any]:
+    async def predict(self, file_path: str, analysis_id: str, execution_backend: str = 'PyTorch') -> Dict[str, Any]:
         # Load and convert image
         try:
             image = Image.open(file_path).convert("RGB")
@@ -337,7 +325,7 @@ class ViTPredictor:
             # Fallback for complex medical formats (real app would use nibabel/pydicom)
             image = Image.fromarray(np.zeros((224, 224, 3), dtype=np.uint8))
 
-        if self.onnx_session:
+        if self.onnx_session and execution_backend == 'ONNX Runtime':
             try:
                 start_time = time.perf_counter()
                 inputs = self.processor(images=image, return_tensors="np")
@@ -428,9 +416,9 @@ class YOLOPredictor:
         self.device = device
         self.backend = backend
         
-    async def predict(self, file_path: str, analysis_id: str) -> Dict[str, Any]:
+    async def predict(self, file_path: str, analysis_id: str, execution_backend: str = 'PyTorch') -> Dict[str, Any]:
         start_time = time.perf_counter()
-        if self.backend == "ONNX Runtime":
+        if execution_backend == "ONNX Runtime" and self.backend == "ONNX Runtime":
             results = self.model(file_path)
         else:
             results = self.model(file_path, device=self.device)
@@ -465,7 +453,7 @@ class YOLOPredictor:
                 "processing_time": round(processing_time, 4),
                 "backend": self.backend
             },
-            "clinical_notes": [f"Detection performed via real-time object localization ({self.backend} - YOLOv8)."]
+            "clinical_notes": [f"Detection performed via real-time object localization ({execution_backend} - YOLOv8)."]
         }
 
 class SegmentationPredictor:
@@ -475,9 +463,9 @@ class SegmentationPredictor:
         self.device = device
         self.backend = backend
         
-    async def predict(self, file_path: str, analysis_id: str) -> Dict[str, Any]:
+    async def predict(self, file_path: str, analysis_id: str, execution_backend: str = 'PyTorch') -> Dict[str, Any]:
         start_time = time.perf_counter()
-        if self.backend == "ONNX Runtime":
+        if execution_backend == "ONNX Runtime" and self.backend == "ONNX Runtime":
             results = self.model(file_path)
         else:
             results = self.model(file_path, device=self.device)
@@ -517,7 +505,7 @@ class SegmentationPredictor:
                 "backend": self.backend
             },
             "clinical_notes": [
-                f"Volumetric segmentation completed via {self.backend}.",
+                f"Volumetric segmentation completed via {execution_backend}.",
                 f"Estimated volume: {volume_ml:.2f} mL based on current voxel spacing."
             ]
         }
@@ -528,13 +516,13 @@ class EnsemblePredictor:
         self.models = models
         self.config = config
         
-    async def predict(self, file_path: str, analysis_id: str) -> Dict[str, Any]:
+    async def predict(self, file_path: str, analysis_id: str, execution_backend: str = 'PyTorch') -> Dict[str, Any]:
         # 1. Classification first
-        vit_res = await self.models["medical_vit"]["predictor"].predict(file_path, analysis_id)
+        vit_res = await self.models["medical_vit"]["predictor"].predict(file_path, analysis_id, execution_backend)
         
         # 2. If classification suggests tumor, run segmentation
         if vit_res["predictions"]["tumor_detected"]:
-            seg_res = await self.models["nnunet"]["predictor"].predict(file_path, analysis_id)
+            seg_res = await self.models["nnunet"]["predictor"].predict(file_path, analysis_id, execution_backend)
             
             # Merge results: Use ViT for type, YOLO-seg for volume and location
             final_res = {
@@ -558,13 +546,25 @@ class EnsemblePredictor:
         return vit_res
 
 class MockPredictor:
-    """Fallback mock predictor - only used if real models fail to load"""
+    """Fallback mock predictor - only used if real models fail to load or in tests"""
     def __init__(self, model_id, config):
         self.model_id = model_id
         self.config = config
-    async def predict(self, file_path, analysis_id):
-        await asyncio.sleep(1)
-        return {"predictions": {"tumor_detected": False, "confidence": 0.99, "tumor_volume_ml": 0, "location": "N/A"}, "metrics": {"processing_time": 0.5}, "clinical_notes": ["Mock fallback."]}
+    async def predict(self, file_path, analysis_id=None, execution_backend='PyTorch'):
+        await asyncio.sleep(0.01)
+        return {
+            "predictions": {
+                "tumor_detected": False, 
+                "confidence": 0.99, 
+                "tumor_volume_ml": 0, 
+                "location": "N/A"
+            }, 
+            "metrics": {
+                "processing_time": 0.05,
+                "backend": execution_backend
+            }, 
+            "clinical_notes": ["Mock fallback."]
+        }
 
 # Bind MockPredictor to ModelService for import-shadowing compatibility in tests
 ModelService.MockPredictor = MockPredictor
