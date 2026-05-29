@@ -10,7 +10,7 @@ current_dir = Path(__file__).parent
 if str(current_dir) not in sys.path:
     sys.path.insert(0, str(current_dir))
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, BackgroundTasks, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, BackgroundTasks, WebSocket, WebSocketDisconnect, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import uvicorn
@@ -147,6 +147,7 @@ async def get_available_models():
 
 @app.post("/api/v1/analysis/upload")
 async def upload_files(
+    execution_backend: str = Form("PyTorch"),
     files: List[UploadFile] = File(...),
     model: str = "ensemble",
     background_tasks: BackgroundTasks = BackgroundTasks(),
@@ -212,7 +213,7 @@ async def upload_files(
     }
     
     # Start background analysis with real detection models
-    background_tasks.add_task(run_analysis, analysis_id, uploaded_files, model)
+    background_tasks.add_task(run_analysis, analysis_id, uploaded_files, model, execution_backend)
     
     return {
         "analysis_id": analysis_id,
@@ -221,7 +222,7 @@ async def upload_files(
         "model_info": next((m for m in available_models if m["id"] == model), None)
     }
 
-async def run_analysis(analysis_id: str, file_paths: List[str], model: str):
+async def run_analysis(analysis_id: str, file_paths: List[str], model: str, execution_backend: str = 'PyTorch'):
     """Run analysis in background using Phase 3 detection models with real-time updates"""
     try:
         # Update status and send WebSocket update
@@ -256,7 +257,7 @@ async def run_analysis(analysis_id: str, file_paths: List[str], model: str):
         # Use the model service for real prediction
         primary_file = file_paths[0] if file_paths else None
         if primary_file:
-            results = await model_service.predict(model, primary_file, analysis_id)
+            results = await model_service.predict(model, primary_file, analysis_id, execution_backend)
         else:
             raise ValueError("No files provided for analysis")
         

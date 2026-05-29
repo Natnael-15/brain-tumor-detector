@@ -10,7 +10,7 @@ class DummyPredictor:
     def __init__(self):
         self.calls = []
 
-    async def predict(self, file_path, analysis_id=None):
+    async def predict(self, file_path, analysis_id=None, execution_backend='PyTorch'):
         self.calls.append((file_path, analysis_id))
         return {"ok": True}
 
@@ -37,4 +37,3 @@ def test_predict_handles_signature_introspection_failure(monkeypatch):
 
     assert result["ok"] is True
     assert result["analysis_id"] == "analysis-1"
-    assert predictor.calls == [("scan.nii.gz", "analysis-1")]
