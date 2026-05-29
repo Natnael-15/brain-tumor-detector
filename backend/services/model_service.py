@@ -26,6 +26,22 @@ except ImportError as e:
     logging.warning(f"AI libraries not fully available: {e}")
     AI_LIBRARIES_AVAILABLE = False
 
+try:
+    import onnxruntime as ort
+    ONNX_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"ONNX Runtime not available: {e}")
+    ONNX_AVAILABLE = False
+
+import time
+
+# Define model file paths relative to project root
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+VIT_ONNX_PATH = PROJECT_ROOT / "vit_model.onnx"
+YOLO_ONNX_PATH = PROJECT_ROOT / "yolov8n.onnx"
+SEG_ONNX_PATH = PROJECT_ROOT / "yolov8n-seg.onnx"
+
+
 # Add src directory to path for model imports
 project_root = Path(__file__).parent.parent.parent
 sys.path.append(str(project_root / "src"))
@@ -83,59 +99,151 @@ class ModelService:
         }
     
     async def _initialize_models(self):
-        """Initialize all available models"""
+        """Initialize all available models, utilizing ONNX optimization if available"""
         logger.info("Initializing AI models...")
         
-        if AI_LIBRARIES_AVAILABLE:
+        # Ensure ONNX files exist if possible
+        if AI_LIBRARIES_AVAILABLE and ONNX_AVAILABLE:
             try:
-                # 1. Classification (ViT)
-                logger.info("Loading ViT Classification model...")
+                # Check / Export YOLOv8 detection model
+                if not YOLO_ONNX_PATH.exists():
+                    logger.info("Exporting YOLOv8 detection to ONNX...")
+                    yolo_model = YOLO("yolov8n.pt")
+                    yolo_model.export(format="onnx", simplify=True)
+                
+                # Check / Export YOLOv8 segmentation model
+                if not SEG_ONNX_PATH.exists():
+                    logger.info("Exporting YOLOv8 segmentation to ONNX...")
+                    seg_model = YOLO("yolov8n-seg.pt")
+                    seg_model.export(format="onnx", simplify=True)
+                    
+                # Check / Export ViT model
+                if not VIT_ONNX_PATH.exists():
+                    logger.info("Exporting ViT model to ONNX...")
+                    model_id = "Hemgg/brain-tumor-classification"
+                    vit_model = AutoModelForImageClassification.from_pretrained(model_id)
+                    dummy_input = torch.randn(1, 3, 224, 224)
+                    torch.onnx.export(
+                        vit_model, 
+                        dummy_input, 
+                        str(VIT_ONNX_PATH), 
+                        opset_version=18, 
+                        input_names=['input'], 
+                        output_names=['output'], 
+                        dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}}
+                    )
+            except Exception as e:
+                logger.error(f"Failed to auto-export ONNX models: {e}")
+                
+        # 1. Classification (ViT)
+        vit_loaded = False
+        vit_predictor = None
+        if ONNX_AVAILABLE and VIT_ONNX_PATH.exists():
+            try:
+                logger.info("Loading ViT Classification model via ONNX Runtime...")
+                model_id = "Hemgg/brain-tumor-classification"
+                processor = AutoImageProcessor.from_pretrained(model_id)
+                # Load ONNX Inference Session
+                onnx_session = ort.InferenceSession(str(VIT_ONNX_PATH))
+                vit_predictor = ViTPredictor(None, processor, self.device, onnx_session=onnx_session)
+                self.models["medical_vit"] = {
+                    "predictor": vit_predictor,
+                    "config": self.model_configs["medical_vit"],
+                    "loaded": True,
+                    "type": "real_onnx"
+                }
+                vit_loaded = True
+            except Exception as e:
+                logger.error(f"Failed to load ViT via ONNX Runtime: {e}")
+                
+        if not vit_loaded and AI_LIBRARIES_AVAILABLE:
+            try:
+                logger.info("Loading ViT Classification model via PyTorch...")
                 model_id = "Hemgg/brain-tumor-classification"
                 processor = AutoImageProcessor.from_pretrained(model_id)
                 model = AutoModelForImageClassification.from_pretrained(model_id).to(self.device)
+                vit_predictor = ViTPredictor(model, processor, self.device)
                 self.models["medical_vit"] = {
-                    "predictor": ViTPredictor(model, processor, self.device),
+                    "predictor": vit_predictor,
                     "config": self.model_configs["medical_vit"],
                     "loaded": True,
                     "type": "real"
                 }
+                vit_loaded = True
+            except Exception as e:
+                logger.error(f"Failed to load ViT via PyTorch: {e}")
 
-                # 2. Detection (YOLOv8)
-                logger.info("Loading YOLOv8 Detection model...")
-                yolo_model = YOLO("yolov8n.pt") 
+        # 2. Detection (YOLOv8)
+        yolo_loaded = False
+        if ONNX_AVAILABLE and YOLO_ONNX_PATH.exists():
+            try:
+                logger.info("Loading YOLOv8 Detection model via ONNX...")
+                yolo_model = YOLO(str(YOLO_ONNX_PATH), task="detect")
                 self.models["yolov8"] = {
-                    "predictor": YOLOPredictor(yolo_model, self.device),
+                    "predictor": YOLOPredictor(yolo_model, self.device, backend="ONNX Runtime"),
+                    "config": self.model_configs["yolov8"],
+                    "loaded": True,
+                    "type": "real_onnx"
+                }
+                yolo_loaded = True
+            except Exception as e:
+                logger.error(f"Failed to load YOLOv8 ONNX: {e}")
+                
+        if not yolo_loaded and AI_LIBRARIES_AVAILABLE:
+            try:
+                logger.info("Loading YOLOv8 Detection model via PyTorch...")
+                yolo_model = YOLO("yolov8n.pt")
+                self.models["yolov8"] = {
+                    "predictor": YOLOPredictor(yolo_model, self.device, backend="PyTorch"),
                     "config": self.model_configs["yolov8"],
                     "loaded": True,
                     "type": "real"
                 }
+                yolo_loaded = True
+            except Exception as e:
+                logger.error(f"Failed to load YOLOv8 PyTorch: {e}")
 
-                # 3. Segmentation (YOLOv8-seg as proxy for clinical UNet)
-                logger.info("Loading Segmentation model (YOLOv8-seg)...")
+        # 3. Segmentation (YOLOv8-seg)
+        seg_loaded = False
+        if ONNX_AVAILABLE and SEG_ONNX_PATH.exists():
+            try:
+                logger.info("Loading Segmentation model (YOLOv8-seg) via ONNX...")
+                seg_model = YOLO(str(SEG_ONNX_PATH), task="segment")
+                self.models["nnunet"] = {
+                    "predictor": SegmentationPredictor(seg_model, self.device, backend="ONNX Runtime"),
+                    "config": self.model_configs["nnunet"],
+                    "loaded": True,
+                    "type": "real_onnx"
+                }
+                seg_loaded = True
+            except Exception as e:
+                logger.error(f"Failed to load YOLOv8-seg ONNX: {e}")
+                
+        if not seg_loaded and AI_LIBRARIES_AVAILABLE:
+            try:
+                logger.info("Loading Segmentation model (YOLOv8-seg) via PyTorch...")
                 seg_model = YOLO("yolov8n-seg.pt")
                 self.models["nnunet"] = {
-                    "predictor": SegmentationPredictor(seg_model, self.device),
+                    "predictor": SegmentationPredictor(seg_model, self.device, backend="PyTorch"),
                     "config": self.model_configs["nnunet"],
                     "loaded": True,
                     "type": "real"
                 }
-
-                # 4. Ensemble
-                self.models["ensemble"] = {
-                    "predictor": EnsemblePredictor(self.models, self.model_configs["ensemble"]),
-                    "config": self.model_configs["ensemble"],
-                    "loaded": True,
-                    "type": "ensemble"
-                }
-                
-                logger.info("Real models successfully loaded")
-                
+                seg_loaded = True
             except Exception as e:
-                logger.error(f"Error loading real models: {e}")
-                logger.error(traceback.format_exc())
-                await self._load_mock_models()
-        else:
-            await self._load_mock_models()
+                logger.error(f"Failed to load YOLOv8-seg PyTorch: {e}")
+
+        # 4. Ensemble
+        if "medical_vit" in self.models and "nnunet" in self.models:
+            self.models["ensemble"] = {
+                "predictor": EnsemblePredictor(self.models, self.model_configs["ensemble"]),
+                "config": self.model_configs["ensemble"],
+                "loaded": True,
+                "type": "ensemble"
+            }
+            
+        # Fallback to mock models if anything failed to load
+        await self._load_mock_models()
         
         logger.info(f"Initialized {len(self.models)} models")
     
@@ -214,11 +322,12 @@ class ModelService:
 
 
 class ViTPredictor:
-    """Predictor using Vision Transformer from Hugging Face"""
-    def __init__(self, model, processor, device):
+    """Predictor using Vision Transformer from Hugging Face (ONNX Optimized)"""
+    def __init__(self, model, processor, device, onnx_session=None):
         self.model = model
         self.processor = processor
         self.device = device
+        self.onnx_session = onnx_session
         
     async def predict(self, file_path: str, analysis_id: str) -> Dict[str, Any]:
         # Load and convert image
@@ -228,18 +337,67 @@ class ViTPredictor:
             # Fallback for complex medical formats (real app would use nibabel/pydicom)
             image = Image.fromarray(np.zeros((224, 224, 3), dtype=np.uint8))
 
+        if self.onnx_session:
+            try:
+                start_time = time.perf_counter()
+                inputs = self.processor(images=image, return_tensors="np")
+                onnx_inputs = {self.onnx_session.get_inputs()[0].name: inputs["pixel_values"]}
+                outputs = self.onnx_session.run(None, onnx_inputs)
+                logits = outputs[0]
+                predicted_class_idx = int(np.argmax(logits, axis=-1)[0])
+                
+                exp_logits = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
+                probs = exp_logits / np.sum(exp_logits, axis=-1, keepdims=True)
+                confidence = float(probs[0][predicted_class_idx])
+                processing_time = time.perf_counter() - start_time
+                
+                # Fetch labels
+                labels = {0: 'glioma', 1: 'meningioma', 2: 'no_tumor', 3: 'pituitary'}
+                if self.model and hasattr(self.model, 'config'):
+                    labels = self.model.config.id2label
+                
+                tumor_type = labels.get(predicted_class_idx, "Unknown")
+                tumor_detected = "no" not in tumor_type.lower() and "normal" not in tumor_type.lower()
+                
+                return {
+                    "predictions": {
+                        "tumor_detected": tumor_detected,
+                        "tumor_type": tumor_type if tumor_detected else "No Tumor",
+                        "confidence": confidence,
+                        "tumor_volume_ml": 0.0,
+                        "location": "Global Scan" if tumor_detected else "N/A"
+                    },
+                    "metrics": {
+                        "dice_score": 0.0, 
+                        "hausdorff_distance": 0.0,
+                        "processing_time": round(processing_time, 4),
+                        "backend": "ONNX Runtime"
+                    },
+                    "clinical_notes": [
+                        f"NeuroScan ViT (ONNX) identifies {tumor_type} pattern.",
+                        "Clinical correlation required for definitive diagnosis.",
+                        "ONNX optimized runtime active."
+                    ]
+                }
+            except Exception as e:
+                logger.error(f"ONNX ViT prediction failed, falling back to PyTorch: {e}")
+
+        # Fallback PyTorch
+        if self.model is None:
+            raise RuntimeError("Neither ONNX session nor PyTorch model loaded for ViT.")
+            
+        start_time = time.perf_counter()
         inputs = self.processor(images=image, return_tensors="pt").to(self.device)
-        
         with torch.no_grad():
             outputs = self.model(**inputs)
             logits = outputs.logits
             predicted_class_idx = logits.argmax(-1).item()
             probs = torch.softmax(logits, dim=-1)
             confidence = float(probs[0][predicted_class_idx])
+        processing_time = time.perf_counter() - start_time
 
         labels = self.model.config.id2label
         tumor_type = labels.get(predicted_class_idx, "Unknown")
-        # Logic to determine if tumor is detected based on class label
         tumor_detected = "no" not in tumor_type.lower() and "normal" not in tumor_type.lower()
         
         return {
@@ -247,13 +405,14 @@ class ViTPredictor:
                 "tumor_detected": tumor_detected,
                 "tumor_type": tumor_type if tumor_detected else "No Tumor",
                 "confidence": confidence,
-                "tumor_volume_ml": 0.0, # ViT doesn't provide volume
+                "tumor_volume_ml": 0.0,
                 "location": "Global Scan" if tumor_detected else "N/A"
             },
             "metrics": {
                 "dice_score": 0.0, 
                 "hausdorff_distance": 0.0,
-                "processing_time": 2.1
+                "processing_time": round(processing_time, 4),
+                "backend": "PyTorch"
             },
             "clinical_notes": [
                 f"NeuroScan ViT identifies {tumor_type} pattern.",
@@ -264,12 +423,19 @@ class ViTPredictor:
 
 class YOLOPredictor:
     """Predictor using YOLOv8 for detection"""
-    def __init__(self, model, device):
+    def __init__(self, model, device, backend="PyTorch"):
         self.model = model
         self.device = device
+        self.backend = backend
         
     async def predict(self, file_path: str, analysis_id: str) -> Dict[str, Any]:
-        results = self.model(file_path, device=self.device)
+        start_time = time.perf_counter()
+        if self.backend == "ONNX Runtime":
+            results = self.model(file_path)
+        else:
+            results = self.model(file_path, device=self.device)
+            
+        processing_time = time.perf_counter() - start_time
         res = results[0]
         
         tumor_detected = len(res.boxes) > 0
@@ -296,19 +462,27 @@ class YOLOPredictor:
             "metrics": {
                 "dice_score": 0.85 if tumor_detected else 1.0,
                 "hausdorff_distance": 4.5 if tumor_detected else 0.0,
-                "processing_time": 0.8
+                "processing_time": round(processing_time, 4),
+                "backend": self.backend
             },
-            "clinical_notes": ["Detection performed via real-time object localization (YOLOv8)."]
+            "clinical_notes": [f"Detection performed via real-time object localization ({self.backend} - YOLOv8)."]
         }
 
 class SegmentationPredictor:
     """Predictor using YOLOv8-seg for segmentation and volume estimation"""
-    def __init__(self, model, device):
+    def __init__(self, model, device, backend="PyTorch"):
         self.model = model
         self.device = device
+        self.backend = backend
         
     async def predict(self, file_path: str, analysis_id: str) -> Dict[str, Any]:
-        results = self.model(file_path, device=self.device)
+        start_time = time.perf_counter()
+        if self.backend == "ONNX Runtime":
+            results = self.model(file_path)
+        else:
+            results = self.model(file_path, device=self.device)
+            
+        processing_time = time.perf_counter() - start_time
         res = results[0]
         
         tumor_detected = res.masks is not None and len(res.masks) > 0
@@ -339,10 +513,11 @@ class SegmentationPredictor:
             "metrics": {
                 "dice_score": 0.91 if tumor_detected else 1.0,
                 "hausdorff_distance": 2.3 if tumor_detected else 0.0,
-                "processing_time": 1.4
+                "processing_time": round(processing_time, 4),
+                "backend": self.backend
             },
             "clinical_notes": [
-                "Volumetric segmentation completed.",
+                f"Volumetric segmentation completed via {self.backend}.",
                 f"Estimated volume: {volume_ml:.2f} mL based on current voxel spacing."
             ]
         }
@@ -373,7 +548,8 @@ class EnsemblePredictor:
                 "metrics": {
                     "dice_score": seg_res["metrics"]["dice_score"],
                     "hausdorff_distance": seg_res["metrics"]["hausdorff_distance"],
-                    "processing_time": vit_res["metrics"]["processing_time"] + seg_res["metrics"]["processing_time"]
+                    "processing_time": round(vit_res["metrics"]["processing_time"] + seg_res["metrics"]["processing_time"], 4),
+                    "backend": f"Ensemble ({vit_res['metrics'].get('backend', 'PyTorch')} + {seg_res['metrics'].get('backend', 'PyTorch')})"
                 },
                 "clinical_notes": vit_res["clinical_notes"] + seg_res["clinical_notes"]
             }
@@ -389,5 +565,8 @@ class MockPredictor:
     async def predict(self, file_path, analysis_id):
         await asyncio.sleep(1)
         return {"predictions": {"tumor_detected": False, "confidence": 0.99, "tumor_volume_ml": 0, "location": "N/A"}, "metrics": {"processing_time": 0.5}, "clinical_notes": ["Mock fallback."]}
+
+# Bind MockPredictor to ModelService for import-shadowing compatibility in tests
+ModelService.MockPredictor = MockPredictor
 
 model_service = ModelService()
