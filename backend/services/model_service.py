@@ -325,7 +325,10 @@ class ViTPredictor:
             # Fallback for complex medical formats (real app would use nibabel/pydicom)
             image = Image.fromarray(np.zeros((224, 224, 3), dtype=np.uint8))
 
-        if self.onnx_session and execution_backend == 'ONNX Runtime':
+        # Determine whether to use ONNX based on request and availability
+        use_onnx = (execution_backend == 'ONNX Runtime' and self.onnx_session is not None) or (self.model is None and self.onnx_session is not None)
+
+        if use_onnx:
             try:
                 start_time = time.perf_counter()
                 inputs = self.processor(images=image, return_tensors="np")
@@ -368,7 +371,7 @@ class ViTPredictor:
                     ]
                 }
             except Exception as e:
-                logger.error(f"ONNX ViT prediction failed, falling back to PyTorch: {e}")
+                logger.error(f"ONNX ViT prediction failed: {e}")
 
         # Fallback PyTorch
         if self.model is None:
@@ -420,8 +423,14 @@ class YOLOPredictor:
         start_time = time.perf_counter()
         if execution_backend == "ONNX Runtime" and self.backend == "ONNX Runtime":
             results = self.model(file_path)
-        else:
+        elif execution_backend == "PyTorch" and self.backend == "PyTorch":
             results = self.model(file_path, device=self.device)
+        else:
+            # Fallback to whatever format is actually loaded
+            if self.backend == "ONNX Runtime":
+                results = self.model(file_path)
+            else:
+                results = self.model(file_path, device=self.device)
             
         processing_time = time.perf_counter() - start_time
         res = results[0]
@@ -467,8 +476,14 @@ class SegmentationPredictor:
         start_time = time.perf_counter()
         if execution_backend == "ONNX Runtime" and self.backend == "ONNX Runtime":
             results = self.model(file_path)
-        else:
+        elif execution_backend == "PyTorch" and self.backend == "PyTorch":
             results = self.model(file_path, device=self.device)
+        else:
+            # Fallback to whatever format is actually loaded
+            if self.backend == "ONNX Runtime":
+                results = self.model(file_path)
+            else:
+                results = self.model(file_path, device=self.device)
             
         processing_time = time.perf_counter() - start_time
         res = results[0]
