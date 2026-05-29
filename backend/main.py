@@ -169,16 +169,33 @@ async def upload_files(
     analysis_dir.mkdir(parents=True, exist_ok=True)
     
     # Save uploaded files
+    import io
+    from PIL import Image
     uploaded_files = []
+    ALLOWED_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.tif', '.tiff', '.nii', '.nii.gz', '.dcm'}
+
     for file in files:
         if file.size and file.size > 100 * 1024 * 1024:  # 100MB limit
             raise HTTPException(status_code=413, detail="File too large")
         
         # Ensure filename is not None
         filename = file.filename or f"uploaded_file_{uuid.uuid4().hex[:8]}"
+        ext = "".join(Path(filename).suffixes) if Path(filename).suffixes else Path(filename).suffix
+        if not any(filename.lower().endswith(allowed) for allowed in ALLOWED_EXTENSIONS):
+            raise HTTPException(status_code=415, detail=f"Unsupported file type: {filename}. Allowed: {ALLOWED_EXTENSIONS}")
+
+        content = await file.read()
+
+        # If it's a common image, check for corruption
+        if any(filename.lower().endswith(ext) for ext in {'.png', '.jpg', '.jpeg'}):
+            try:
+                img = Image.open(io.BytesIO(content))
+                img.verify()
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Corrupted or invalid image file: {filename}")
+
         file_path = analysis_dir / filename
         with open(file_path, "wb") as buffer:
-            content = await file.read()
             buffer.write(content)
         uploaded_files.append(str(file_path))
     
